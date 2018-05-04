@@ -1,0 +1,39 @@
+# Cargo.toml -- Fonterator
+# Copyright (c) 2018  Jeron Lau <jeron.lau@plopgrizzly.com>
+# Licensed under the MIT LICENSE
+#                             _        _
+#                            /@\——————/@\
+# .———  .                   |   o    o   |     .————      .            .
+# |   | |  .———   .———   .——.     []     .——.  |      .——    ———: ———: | .   .
+# |   | |  |   |  |   |  \   \   <##>   /   /  |      |   |    /    /  | |   |
+# |———  |  |   |  |   |   |   ¯        ¯   |   |   -- |   |   /    /   |  \ /
+# |     |  |   |  |———    |                |   |    | |   |  /    /    |   |
+# |     |   ———   |       |                |    ————  |   | :——— :———  |   |
+#                 |        \              /                              __/
+#                           ¯————————————¯
+
+[package]
+name = "fonterator"
+version = "0.1.0"
+authors = [
+	"Jeron Lau <jeron.lau@plopgrizzly.com>"
+]
+
+license = "MIT"
+documentation = "https://docs.rs/fonterator"
+homepage = "http://plopgrizzly.com/fonterator"
+repository = "https://github.com/plopgrizzly/fonterator"
+
+readme = "README.md"
+description = "Load fonts as vector graphics in pure Rust - based on RustType"
+keywords = ["font", "truetype", "opentype", "ttf", "otf"]
+categories = ["gui", "rendering"]
+
+exclude = [
+	"examples/*", "CODE_OF_CONDUCT.md", "CONTRIBUTING.md", ".gitignore",
+	"_config.yml", "ISSUE_TEMPLATE.md", "icon.png", "icon.ico"
+]
+
+[dependencies]
+stb_truetype = "0.2.2"
+ordered-float = "0.5"
