@@ -1,4 +1,4 @@
-
+image_example.svg
 /target
 **/*.rs.bk
 Cargo.lock

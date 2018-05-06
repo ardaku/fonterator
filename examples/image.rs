@@ -2,46 +2,67 @@
 // Copyright (c) 2018  Jeron Lau <jeron.lau@plopgrizzly.com>
 // Licensed under the MIT LICENSE
 
-// extern crate svg;
+extern crate svg;
 extern crate fonterator;
 
-use fonterator::{point, Font, Scale, PathOp};
+use svg::{ Document, Node, node::element::{ Path, Group, Style, path::Data } };
+use fonterator::{Font, PathOp};
+
+const FONT: &[u8] = include_bytes!("../font/LiberationSans-Regular.ttf");
+const FONT_SIZE: f32 = 256.0;
 
 fn main() {
-	// Load the font
-	let font_data = include_bytes!("../font/DejaVuSansMono.ttf");
 	// This only succeeds if collection consists of one font
-	let font =
-		Font::from_bytes(font_data as &[u8]).expect("Error constructing Font");
+	let font = Font::new(FONT).expect("Failed to load font!");
 
-	// The font size to use
-	let size = (1.0f32).ceil();
-	let scale = Scale { x: size, y: size };
-	let v_metrics = font.v_metrics(scale);
-	let offset = point(0.0, v_metrics.ascent);
+	// Initialize variables need to write to SVG
+	let mut group = Group::new();
+	let mut origin = (0.0, 0.0);
+	let mut data = Data::new().move_to(vec![0.0, 0.0]);
+	let mut x = 0.0;
 
-	// The text to render
-	let text = "S";
-
-	// Use a dark red colour
-	let colour = (150, 0, 0);
-
-	// Loop through the glyphs in the text, positing each one on a line
-	for glyph in font.layout(text, scale, offset) {
-		if let Some(bounding_box) = glyph.pixel_bounding_box() {
-			// Draw the glyph into the image per-pixel by using the draw closure
-			for i in glyph.draw() {
-				match i {
-					PathOp::MoveTo(x, y) => println!("Move({}, {})", x, y),
-					PathOp::LineTo(x, y) => println!("Line({}, {})", x, y),
-					PathOp::QuadTo(x, y, cx, cy) => println!("Quad({}, {}, {}, {})", x, y, cx, cy),
-					PathOp::LineClose => println!("Line Close"),
-					PathOp::QuadClose(cx, cy) => println!("Quad Close({} {})", cx, cy),
+	// Loop through the glyphs in the text, adding to the SVG.
+	for g in font.glyphs("Splat‽é¿?üæ", (FONT_SIZE, FONT_SIZE)) {
+		// Draw the glyph
+		for i in g.0.draw(x, 0.0) {
+			match i {
+				PathOp::MoveTo(x, y) => {
+					origin = (x, y);
+					data = Data::new().move_to(
+						vec![x, y]);
+				}
+				PathOp::LineTo(x, y) => {
+					data = data.line_to(vec![x, y]);
+				}
+				PathOp::QuadTo(x, y, cx, cy) => {
+					data = data.quadratic_curve_to(
+						vec![cx, cy, x, y]);
+				}
+				PathOp::LineClose => {
+					data = data.line_to(vec![
+						origin.0, origin.1]);
+					data = data.close();
+					group.append(Path::new().set(
+						"d", data.clone()));
+				}
+				PathOp::QuadClose(cx, cy) => {
+					data = data.quadratic_curve_to(
+						vec![cx, cy, origin.0, origin.1,
+							]);
+					data = data.close();
+					group.append(Path::new().set(
+						"d", data.clone()));
 				}
 			}
 		}
+
+		// Position next glyph
+		x += g.1;
 	}
 
-	// Save the image to a png file
-	// image.save("image_example.png").unwrap();
+	// Save the image to an SVG file
+	let style = Style::new("path { fill: none; stroke: black; stroke-width: 3; }");
+	let document = Document::new().set("width", x).set("height", 256.0)
+		.add(style).add(group);
+	svg::save("image_example.svg", &document).unwrap();
 }

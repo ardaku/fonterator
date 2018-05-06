@@ -37,3 +37,7 @@ exclude = [
 [dependencies]
 stb_truetype = "0.2.2"
 ordered-float = "0.5"
+unicode-normalization = "^0.1"
+
+[dev-dependencies]
+svg = "^0.5"
