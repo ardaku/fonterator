@@ -85,7 +85,7 @@ use std::sync::Arc;
 
 /// A 2D vector
 #[derive(Copy, Clone)]
-pub struct Vec2(pub f32, pub f32);
+struct Vec2(pub f32, pub f32);
 
 /// An iterator over `PathOp`.
 pub struct Path(Vec<PathOp>);
