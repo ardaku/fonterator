@@ -107,10 +107,8 @@ pub enum PathOp {
 	LineTo(f32, f32),
 	/// Quadratic curve `x, y, cx, cy`
 	QuadTo(f32, f32, f32, f32),
-	/// Close the path with a line
-	LineClose,
-	/// Close the path with a quadratic curve `cx, cy`
-	QuadClose(f32, f32),
+	/// Close the path
+	Close,
 }
 
 /// A collection of fonts read straight from a font file's data. The data in the
@@ -471,18 +469,14 @@ impl<'a> Glyph<'a> {
 			font.info.get_glyph_shape(id.0).unwrap_or_else(Vec::new)
 		};
 		let mut path = Vec::new();
-		let mut origin = (0.0, 0.0);
+		let mut start = true;
 		for v in shape {
 			let x = v.x as f32 * self.v.0 + point_x;
 			let y = -v.y as f32 * self.v.1 + point_y;
 
 			match v.vertex_type() {
 				VertexType::LineTo => {
-					if x == origin.0 && y == origin.1 {
-						path.push(PathOp::LineClose);
-					} else {
-						path.push(PathOp::LineTo(x, y));
-					}
+					path.push(PathOp::LineTo(x, y));
 				}
 				VertexType::CurveTo => {
 					let cx = v.cx as f32 * self.v.0
@@ -490,20 +484,19 @@ impl<'a> Glyph<'a> {
 					let cy = -v.cy as f32 * self.v.1
 						+ point_y;
 
-					if x == origin.0 && y == origin.1 {
-						path.push(PathOp::QuadClose(
-							cx, cy));
-					} else {
-						path.push(PathOp::QuadTo(
-							x, y, cx, cy));
-					}
+					path.push(PathOp::QuadTo(x, y, cx, cy));
 				}
 				VertexType::MoveTo => {
+					if start {
+						start = false;
+					} else {
+						path.push(PathOp::Close);
+					}
 					path.push(PathOp::MoveTo(x, y));
-					origin = (x, y);
 				}
 			}
 		}
+		path.push(PathOp::Close);
 
 		Path(path)
 	}

@@ -17,18 +17,18 @@ fn main() {
 
 	// Initialize variables need to write to SVG
 	let mut group = Group::new();
-	let mut origin = (0.0, 0.0);
-	let mut data = Data::new().move_to(vec![0.0, 0.0]);
+	let mut data;//= Data::new().move_to(vec![0.0, 0.0]);
 	let mut x = 0.0;
 
 	// Loop through the glyphs in the text, adding to the SVG.
 	for g in font.glyphs("Splat‽é¿?üæ", (FONT_SIZE, FONT_SIZE)) {
+		data = Data::new();
+
 		// Draw the glyph
 		for i in g.0.draw(x, 0.0) {
 			match i {
 				PathOp::MoveTo(x, y) => {
-					origin = (x, y);
-					data = Data::new().move_to(
+					data = data.move_to(
 						vec![x, y]);
 				}
 				PathOp::LineTo(x, y) => {
@@ -38,30 +38,20 @@ fn main() {
 					data = data.quadratic_curve_to(
 						vec![cx, cy, x, y]);
 				}
-				PathOp::LineClose => {
-					data = data.line_to(vec![
-						origin.0, origin.1]);
+				PathOp::Close => {
 					data = data.close();
-					group.append(Path::new().set(
-						"d", data.clone()));
-				}
-				PathOp::QuadClose(cx, cy) => {
-					data = data.quadratic_curve_to(
-						vec![cx, cy, origin.0, origin.1,
-							]);
-					data = data.close();
-					group.append(Path::new().set(
-						"d", data.clone()));
 				}
 			}
 		}
+
+		group.append(Path::new().set("d", data.clone()));
 
 		// Position next glyph
 		x += g.1;
 	}
 
 	// Save the image to an SVG file
-	let style = Style::new("path { fill: none; stroke: black; stroke-width: 3; }");
+	let style = Style::new("path { fill: 0x000000; stroke: black; stroke-width: 3; }");
 	let document = Document::new().set("width", x).set("height", 256.0)
 		.add(style).add(group);
 	svg::save("image_example.svg", &document).unwrap();
