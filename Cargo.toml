@@ -36,7 +36,6 @@ exclude = [
 
 [dependencies]
 byteorder = "^1.2"
-ordered-float = "0.5"
 unicode-normalization = "^0.1"
 
 [dev-dependencies]

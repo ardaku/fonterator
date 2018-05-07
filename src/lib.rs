@@ -74,7 +74,6 @@
 //!   unique to the font, its ID.
 
 extern crate byteorder;
-extern crate ordered_float;
 extern crate unicode_normalization;
 
 mod tt;
@@ -404,10 +403,6 @@ impl<'a> Font<'a> {
 		assert!((gid.0 as usize) < self.glyph_count());
 		// font clone either a reference clone, or arc clone
 		Glyph::new(GlyphInner(self.clone(), gid.0), v)
-	}
-	/// Returns an iterator over the names for this font.
-	pub fn font_name_strings(&self) -> tt::FontNameIter<SharedBytes<'a>> {
-		self.info.get_font_name_strings()
 	}
 	/// Returns additional kerning to apply as well as that given by HMetrics
 	/// for a particular pair of glyphs.

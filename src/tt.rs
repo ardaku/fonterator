@@ -7,7 +7,7 @@ use byteorder::ByteOrder;
 use byteorder::BigEndian as BE;
 use ::std::ops::Deref;
 #[derive(Clone, Debug)]
-pub struct FontInfo<Data: Deref<Target=[u8]>> {
+pub(crate) struct FontInfo<Data: Deref<Target=[u8]>> {
 	data: Data,	   // pointer to .ttf file
 	// fontstart: usize,	   // offset of start of font
 	num_glyphs: u32,	   // number of glyphs, needed for range checking
@@ -23,52 +23,51 @@ pub struct FontInfo<Data: Deref<Target=[u8]>> {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct Vertex {
-	pub x: i16,
-	pub y: i16,
-	pub cx: i16,
-	pub cy: i16,
-	type_: VertexType,
+pub(crate) struct Vertex {
+	pub(crate) x: i16,
+	pub(crate) y: i16,
+	pub(crate) cx: i16,
+	pub(crate) cy: i16,
+	type_: u8
 }
 
 impl Vertex {
-	pub fn vertex_type(&self) -> VertexType {
-		self.type_
+	pub(crate) fn vertex_type(&self) -> VertexType {
+		unsafe{::std::mem::transmute(self.type_)}
 	}
 }
 
 #[derive(Copy, Clone, Debug)]
 #[repr(u8)]
-pub enum VertexType {
+pub(crate) enum VertexType {
 	MoveTo = 1,
 	LineTo = 2,
 	CurveTo = 3,
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct Rect<T> {
-	pub x0: T,
-	pub y0: T,
-	pub x1: T,
-	pub y1: T
+pub(crate) struct Rect<T> {
+	pub(crate) x0: T,
+	pub(crate) y0: T,
+	pub(crate) x1: T,
+	pub(crate) y1: T
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct HMetrics {
-	pub advance_width: i32,
-	pub left_side_bearing: i32
+pub(crate) struct HMetrics {
+	pub(crate) advance_width: i32,
+	pub(crate) left_side_bearing: i32
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct VMetrics {
-	pub ascent: i32,
-	pub descent: i32,
-	pub line_gap: i32
+pub(crate) struct VMetrics {
+	pub(crate) ascent: i32,
+	pub(crate) descent: i32,
+	pub(crate) line_gap: i32
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(C)]
-pub enum PlatformId { // platformID
+pub(crate) enum PlatformId { // platformID
    Unicode   = 0,
    Mac	   = 1,
    Iso	   = 2,
@@ -86,30 +85,7 @@ fn platform_id(v: u16) -> Option<PlatformId> {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(C)]
-#[allow(non_camel_case_types)]
-pub enum UnicodeEid { // encodingID for PLATFORM_ID_UNICODE
-   Unicode_1_0	   = 0,
-   Unicode_1_1	   = 1,
-   Iso_10646		 = 2,
-   Unicode_2_0_Bmp   = 3,
-   Unicode_2_0_Full = 4
-}
-fn unicode_eid(v: u16) -> Option<UnicodeEid> {
-	use tt::UnicodeEid::*;
-	match v {
-		0 => Some(Unicode_1_0),
-		1 => Some(Unicode_1_1),
-		2 => Some(Iso_10646),
-		3 => Some(Unicode_2_0_Bmp),
-		4 => Some(Unicode_2_0_Full),
-		_ => None,
-	}
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(C)]
-pub enum MicrosoftEid { // encodingID for PLATFORM_ID_MICROSOFT
+pub(crate) enum MicrosoftEid { // encodingID for PLATFORM_ID_MICROSOFT
    Symbol		=0,
    UnicodeBMP	=1,
    Shiftjis	  =2,
@@ -126,120 +102,12 @@ fn microsoft_eid(v: u16) -> Option<MicrosoftEid> {
 	}
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(C)]
-pub enum MacEid { // encodingID for PLATFORM_ID_MAC; same as Script Manager codes
-   Roman		=0,   Arabic	   =4,
-   Japanese	 =1,   Hebrew	   =5,
-   ChineseTrad  =2,   Greek		=6,
-   Korean	   =3,   Russian	  =7
-}
-fn mac_eid(v: u16) -> Option<MacEid> {
-	use tt::MacEid::*;
-	match v {
-		0 => Some(Roman),
-		1 => Some(Japanese),
-		2 => Some(ChineseTrad),
-		3 => Some(Korean),
-		4 => Some(Arabic),
-		5 => Some(Hebrew),
-		6 => Some(Greek),
-		7 => Some(Russian),
-		_ => None
-	}
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(C)]
-pub enum MicrosoftLang { // languageID for PLATFORM_ID_MICROSOFT; same as LCID...
-	// problematic because there are e.g. 16 english LCIDs and 16 arabic LCIDs
-	English	 =0x0409,   Italian	 =0x0410,
-	Chinese	 =0x0804,   Japanese	=0x0411,
-	Dutch	   =0x0413,   Korean	  =0x0412,
-	French	  =0x040c,   Russian	 =0x0419,
-	German	  =0x0407,   //Spanish	 =0x0409,
-	Hebrew	  =0x040d,   Swedish	 =0x041D
-}
-fn microsoft_lang(v: u16) -> Option<MicrosoftLang> {
-	use tt::MicrosoftLang::*;
-	match v {
-		0x0409 => Some(English),
-		0x0804 => Some(Chinese),
-		0x0413 => Some(Dutch),
-		0x040c => Some(French),
-		0x0407 => Some(German),
-		0x040d => Some(Hebrew),
-		0x0410 => Some(Italian),
-		0x0411 => Some(Japanese),
-		0x0412 => Some(Korean),
-		0x0419 => Some(Russian),
-		0x041D => Some(Swedish),
-		_ => None,
-	}
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(C)]
-pub enum MacLang { // languageID for PLATFORM_ID_MAC
-	English = 0, Japanese = 11,
-	Arabic = 12, Korean = 23,
-	Dutch = 4, Russian = 32,
-	French = 1, Spanish = 6,
-	German = 2, Swedish = 5,
-	Hebrew = 10, ChineseSimplified = 33,
-	Italian = 3, ChineseTrad = 19
-}
-fn mac_lang(v: u16) -> Option<MacLang> {
-	use tt::MacLang::*;
-	match v {
-		0 => Some(English),
-		12 => Some(Arabic),
-		4 => Some(Dutch),
-		1 => Some(French),
-		2 => Some(German),
-		10 => Some(Hebrew),
-		3 => Some(Italian),
-		11 => Some(Japanese),
-		23 => Some(Korean),
-		32 => Some(Russian),
-		6 => Some(Spanish),
-		5 => Some(Swedish),
-		33 => Some(ChineseSimplified),
-		19 => Some(ChineseTrad),
-		_ => None,
-	}
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum PlatformEncodingLanguageId {
-	Unicode(Option<Result<UnicodeEid, u16>>, Option<u16>),
-	Mac(Option<Result<MacEid, u16>>, Option<Result<MacLang, u16>>),
-	Iso(Option<u16>, Option<u16>),
-	Microsoft(Option<Result<MicrosoftEid, u16>>, Option<Result<MicrosoftLang, u16>>),
-}
-fn platform_encoding_id(platform_id: PlatformId, encoding_id: Option<u16>, language_id: Option<u16>) -> PlatformEncodingLanguageId {
-	match platform_id {
-		PlatformId::Unicode => PlatformEncodingLanguageId::Unicode(
-			encoding_id.map(|id| unicode_eid(id).ok_or(id)),
-			language_id),
-		PlatformId::Mac => PlatformEncodingLanguageId::Mac(
-			encoding_id.map(|id| mac_eid(id).ok_or(id)),
-			language_id.map(|id| mac_lang(id).ok_or(id))),
-		PlatformId::Iso => PlatformEncodingLanguageId::Iso(
-			encoding_id,
-			language_id),
-		PlatformId::Microsoft => PlatformEncodingLanguageId::Microsoft(
-			encoding_id.map(|id| microsoft_eid(id).ok_or(id)),
-			language_id.map(|id| microsoft_lang(id).ok_or(id))),
-	}
-}
-
 // # accessors to parse data from file
 
 // on platforms that don't allow misaligned reads, if we want to allow
 // truetype fonts that aren't padded to alignment, define ALLOW_UNALIGNED_TRUETYPE
 
-pub fn is_font(font: &[u8]) -> bool {
+pub(crate) fn is_font(font: &[u8]) -> bool {
 	if font.len() >= 4 {
 		let tag = &font[0..4];
 		tag == [b'1', 0, 0, 0] || tag == b"typ1" || tag == b"OTTO" || tag == [0, 1, 0, 0]
@@ -266,7 +134,7 @@ fn find_table(data: &[u8], fontstart: usize, tag: &[u8]) -> u32 {
 /// file will only define one font and it always be at offset 0, so it will
 /// return Some(0) for index 0, and None for all other indices. You can just skip
 /// this step if you know it's that kind of font.
-pub fn get_font_offset_for_index(font_collection: &[u8], index: i32) -> Option<u32> {
+pub(crate) fn get_font_offset_for_index(font_collection: &[u8], index: i32) -> Option<u32> {
    // if it's just a font, there's only one valid index
    if is_font(font_collection) {
 	  return if index == 0 { Some(0) } else { None };
@@ -289,7 +157,7 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 
 	/// Given an offset into the file that defines a font, this function builds
 	/// the necessary cached info for the rest of the system.
-	pub fn new(data: Data, fontstart: usize) -> Option<FontInfo<Data>> {
+	pub(crate) fn new(data: Data, fontstart: usize) -> Option<FontInfo<Data>> {
 		let cmap = find_table(&data, fontstart, b"cmap"); // required
 		let loca = find_table(&data, fontstart, b"loca"); // required
 		let head = find_table(&data, fontstart, b"head"); // required
@@ -354,7 +222,7 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 		})
 	}
 
-	pub fn get_num_glyphs(&self) -> u32 {
+	pub(crate) fn get_num_glyphs(&self) -> u32 {
 		self.num_glyphs
 	}
 
@@ -362,7 +230,7 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 	/// and you want a speed-up, call this function with the character you're
 	/// going to process, then use glyph-based functions instead of the
 	/// codepoint-based functions.
-	pub fn find_glyph_index(&self, unicode_codepoint: u32) -> u32 {
+	pub(crate) fn find_glyph_index(&self, unicode_codepoint: u32) -> u32 {
 		let data = &self.data;
 		let index_map = &data[self.index_map as usize..];//self.index_map as usize;
 
@@ -487,7 +355,7 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 
 	/// Like `get_codepoint_shape`, but takes a glyph index instead. Use this if you have cached the
 	/// glyph index for a codepoint.
-	pub fn get_glyph_shape(&self, glyph_index: u32) -> Option<Vec<Vertex>> {
+	pub(crate) fn get_glyph_shape(&self, glyph_index: u32) -> Option<Vec<Vertex>> {
 		use tt::VertexType::*;
 		fn close_shape(vertices: &mut [Vertex], num_vertices: &mut usize, was_off: bool, start_off: bool,
 					   sx: i32, sy: i32, scx: i32, scy: i32, cx: i32, cy: i32) {
@@ -495,7 +363,7 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 			if start_off {
 				if was_off {
 					vertices[*num_vertices] = Vertex {
-						type_: CurveTo,
+						type_: CurveTo as u8,
 						x: ((cx+scx)>>1) as i16,
 						y: ((cy+scy)>>1) as i16,
 						cx: cx as i16,
@@ -504,7 +372,7 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 					*num_vertices += 1;
 				}
 				vertices[*num_vertices] = Vertex {
-					type_: CurveTo,
+					type_: CurveTo as u8,
 					x: sx as i16,
 					y: sy as i16,
 					cx: scx as i16,
@@ -513,7 +381,7 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 			} else {
 				vertices[*num_vertices] = if was_off {
 					Vertex {
-						type_: CurveTo,
+						type_: CurveTo as u8,
 						x: sx as i16,
 						y: sy as i16,
 						cx: cx as i16,
@@ -521,7 +389,7 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 					}
 				} else {
 					Vertex {
-						type_: LineTo,
+						type_: LineTo as u8,
 						x: sx as i16,
 						y: sy as i16,
 						cx: 0,
@@ -575,21 +443,13 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 				} else {
 					flagcount -= 1;
 				}
-				vertices[off + i].type_ = match flags {
-					1 => VertexType::MoveTo,
-					2 => VertexType::LineTo,
-					3 => VertexType::CurveTo,
-					a => {
-						// println!("Unknown Flag! {}", a);
-						unsafe { ::std::mem::transmute(a) }
-					},
-				};
+				vertices[off + i].type_ = flags;
 			}
 
 			// now load x coordinates
 			let mut x = 0i32;
 			for i in 0..n {
-				let flags = vertices[off + i].type_ as u8;
+				let flags = vertices[off + i].type_;
 				if flags == 255 {
 					println!("{:?}", flags);
 				}
@@ -613,7 +473,7 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 			// now load y coordinates
 			let mut y = 0i32;
 			for i in 0..n {
-				let flags = vertices[off + i].type_ as u8;
+				let flags = vertices[off + i].type_;
 				if flags & 4 != 0 {
 					let dy = points[0] as i32;
 					points = &points[1..];
@@ -642,7 +502,7 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 			let mut i = 0;
 			let mut j = 0;
 			while i < n {
-				let flags = vertices[off + i].type_ as u8;
+				let flags = vertices[off + i].type_;
 				x = vertices[off + i].x as i32;
 				y = vertices[off + i].y as i32;
 
@@ -673,7 +533,7 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 						sy = y;
 					}
 					vertices[num_vertices] = Vertex {
-						type_: MoveTo,
+						type_: MoveTo as u8,
 						x: sx as i16,
 						y: sy as i16,
 						cx: 0,
@@ -688,7 +548,7 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 						if was_off {
 							// two off-curve control points in a row means interpolate an on-curve midpoint
 							vertices[num_vertices] = Vertex {
-								type_: CurveTo,
+								type_: CurveTo as u8,
 								x: ((cx+x) >> 1) as i16,
 								y: ((cy+y) >> 1) as i16,
 								cx: cx as i16,
@@ -702,7 +562,7 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 					} else {
 						if was_off {
 							vertices[num_vertices] = Vertex {
-								type_: CurveTo,
+								type_: CurveTo as u8,
 								x: x as i16,
 								y: y as i16,
 								cx: cx as i16,
@@ -710,7 +570,7 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 							}
 						} else {
 							vertices[num_vertices] = Vertex {
-								type_: LineTo,
+								type_: LineTo as u8,
 								x: x as i16,
 								y: y as i16,
 								cx: 0 as i16,
@@ -816,7 +676,7 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 
 	/// like `get_codepoint_h_metrics`, but takes a glyph index instead. Use this if you have cached the
 	/// glyph index for a codepoint.
-	pub fn get_glyph_h_metrics(&self, glyph_index: u32) -> HMetrics {
+	pub(crate) fn get_glyph_h_metrics(&self, glyph_index: u32) -> HMetrics {
 		let num_of_long_hor_metrics = BE::read_u16(&self.data[self.hhea as usize + 34..]) as usize;
 		if (glyph_index as usize) < num_of_long_hor_metrics {
 			HMetrics {
@@ -837,7 +697,7 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 
 	/// like `get_codepoint_kern_advance`, but takes glyph indices instead. Use this if you have cached the
 	/// glyph indices for the codepoints.
-	pub fn get_glyph_kern_advance(&self, glyph_1: u32, glyph_2: u32) -> i32 {
+	pub(crate) fn get_glyph_kern_advance(&self, glyph_1: u32, glyph_2: u32) -> i32 {
 		let kern = &self.data[self.kern as usize..];
 		// we only look at the first table. it must be 'horizontal' and format 0
 		if self.kern == 0 || BE::read_u16(&kern[2..]) < 1 || BE::read_u16(&kern[8..]) != 1 {
@@ -870,7 +730,7 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 	/// so you should advance the vertical position by `ascent - descent + line_gap`
 	/// these are expressed in unscaled coordinates, so you must multiply by
 	/// the scale factor for a given size
-	pub fn get_v_metrics(&self) -> VMetrics {
+	pub(crate) fn get_v_metrics(&self) -> VMetrics {
 		let hhea = &self.data[self.hhea as usize..];
 		VMetrics {
 			ascent: BE::read_i16(&hhea[4..]) as i32,
@@ -885,101 +745,14 @@ impl<Data: Deref<Target=[u8]>> FontInfo<Data> {
 	/// and computing:
 	///	   scale = pixels / (ascent - descent)
 	/// so if you prefer to measure height by the ascent only, use a similar calculation.
-	pub fn scale_for_pixel_height(&self, height: f32) -> f32 {
+	pub(crate) fn scale_for_pixel_height(&self, height: f32) -> f32 {
 		let hhea = &self.data[self.hhea as usize..];
 		let fheight = BE::read_i16(&hhea[4..]) as f32 - BE::read_i16(&hhea[6..]) as f32;
 		height / fheight
 	}
 
 	/// Returns the units per EM square of this font.
-	pub fn units_per_em(&self) -> u16 {
+	pub(crate) fn units_per_em(&self) -> u16 {
 		BE::read_u16(&self.data[self.head as usize + 18..])
-	}
-
-	pub fn get_font_name_strings(&self) -> FontNameIter<Data> {
-		let nm = self.name as usize;
-		if nm == 0 {
-			return FontNameIter {
-				font_info: &self,
-				string_offset: 0,
-				index: 0,
-				count: 0,
-			};
-		}
-		let count = BE::read_u16(&self.data[nm + 2..]) as usize;
-		let string_offset = nm + BE::read_u16(&self.data[nm + 4..]) as usize;
-
-		FontNameIter {
-			font_info: &self,
-			string_offset: string_offset,
-			index: 0,
-			count: count,
-		}
-	}
-
-}
-
-#[derive(Clone, Copy)]
-pub struct FontNameIter<'a, Data: 'a + Deref<Target=[u8]>> {
-	/// Font info.
-	font_info: &'a FontInfo<Data>,
-	string_offset: usize,
-	/// Next index.
-	index: usize,
-	/// Number of name strings.
-	count: usize,
-}
-
-impl<'a, Data: 'a + Deref<Target=[u8]>> Iterator for FontNameIter<'a, Data> {
-	type Item = (&'a [u8], Option<PlatformEncodingLanguageId>, u16);
-
-	fn next(&mut self) -> Option<Self::Item> {
-		if self.index >= self.count {
-			return None;
-		}
-
-		let loc = self.font_info.name as usize + 6 + 12 * self.index;
-
-		let pl_id = platform_id(BE::read_u16(&self.font_info.data[loc + 0..]));
-		let platform_encoding_language_id = pl_id.map(|pl_id| {
-				let encoding_id = BE::read_u16(&self.font_info.data[loc + 2..]);
-				let language_id = BE::read_u16(&self.font_info.data[loc + 4..]);
-				platform_encoding_id(pl_id, Some(encoding_id), Some(language_id))
-			});
-		// @TODO: Define an enum type for Name ID.
-		//		See https://www.microsoft.com/typography/otspec/name.htm, "Name IDs" section.
-		let name_id = BE::read_u16(&self.font_info.data[loc + 6..]);
-		let length = BE::read_u16(&self.font_info.data[loc + 8..]) as usize;
-		let offset = self.string_offset + BE::read_u16(&self.font_info.data[loc + 10..]) as usize;
-
-		self.index += 1;
-
-		Some((&self.font_info.data[offset..offset+length], platform_encoding_language_id, name_id))
-	}
-
-	fn size_hint(&self) -> (usize, Option<usize>) {
-		let remaining = self.count - self.index;
-		(remaining, Some(remaining))
-	}
-
-	fn count(self) -> usize {
-		self.count - self.index
-	}
-
-	fn last(mut self) -> Option<Self::Item> {
-		if self.index >= self.count || self.count == 0 {
-			return None;
-		}
-		self.index = self.count - 1;
-		self.next()
-	}
-
-	fn nth(&mut self, n: usize) -> Option<Self::Item> {
-		if n > self.count - self.index {
-			self.index = self.count;
-			return None;
-		}
-		self.index += n;
-		self.next()
 	}
 }
