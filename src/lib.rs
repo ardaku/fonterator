@@ -1,7 +1,7 @@
 // lib.rs -- Fonterator
 // Copyright (c) 2018  Jeron Lau <jeron.lau@plopgrizzly.com>
 // Copyright (c) 2016  Dylan Ede
-// Dual-Licensed under the MIT LICENSE and the APACHE LICENSE
+// Licensed under the MIT LICENSE
 
 //! Fonterator is a pure Rust alternative to libraries like FreeType based on
 //! RustType.
@@ -73,13 +73,14 @@
 //!   particular Unicode code point. This will have its own identifying number
 //!   unique to the font, its ID.
 
+extern crate byteorder;
 extern crate ordered_float;
-extern crate stb_truetype;
 extern crate unicode_normalization;
+
+mod tt;
 
 use unicode_normalization::UnicodeNormalization;
 
-use stb_truetype as tt;
 use std::fmt;
 use std::sync::Arc;
 
@@ -461,7 +462,7 @@ impl<'a> Glyph<'a> {
 	}
 	/// Convert the glyph to an iterator over PathOps
 	pub fn draw(&self, point_x: f32, mut point_y: f32) -> Path {
-		use stb_truetype::VertexType;
+		use tt::VertexType;
 		point_y += self.font().v_metrics(self.v);
 		let shape = {
 			let (font, id) = (self.font(), self.id());

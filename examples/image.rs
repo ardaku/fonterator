@@ -21,7 +21,7 @@ fn main() {
 	let mut x = 0.0;
 
 	// Loop through the glyphs in the text, adding to the SVG.
-	for g in font.glyphs("Splat‽é¿?üæ", (FONT_SIZE, FONT_SIZE)) {
+	for g in font.glyphs("Splat And…    ‽é¿?üæ", (FONT_SIZE, FONT_SIZE)) {
 		data = Data::new();
 
 		// Draw the glyph

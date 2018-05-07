@@ -35,7 +35,7 @@ exclude = [
 ]
 
 [dependencies]
-stb_truetype = "0.2.2"
+byteorder = "^1.2"
 ordered-float = "0.5"
 unicode-normalization = "^0.1"
 
