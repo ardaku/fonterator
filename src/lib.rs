@@ -1,7 +1,6 @@
-// lib.rs -- Fonterator
-// Copyright (c) 2018  Jeron Lau <jeron.lau@plopgrizzly.com>
-// Copyright (c) 2016  Dylan Ede
-// Licensed under the MIT LICENSE
+// "fonterator" crate - Licensed under the MIT LICENSE
+//  * Copyright (c) 2018  Jeron A. Lau <jeron.lau@plopgrizzly.com>
+//  * Copyright (c) 2016  Dylan Ede
 
 //! Fonterator is a pure Rust alternative to libraries like FreeType based on
 //! RustType.

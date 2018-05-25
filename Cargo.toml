@@ -1,6 +1,6 @@
-# Cargo.toml -- Fonterator
-# Copyright (c) 2018  Jeron Lau <jeron.lau@plopgrizzly.com>
-# Licensed under the MIT LICENSE
+# "fonterator" crate - Licensed under the MIT LICENSE
+#  * Copyright (c) 2018  Jeron A. Lau <jeron.lau@plopgrizzly.com>
+#  * Copyright (c) 2016  Dylan Ede
 #                             _        _
 #                            /@\——————/@\
 # .———  .                   |   o    o   |     .————      .            .
@@ -24,14 +24,14 @@ documentation = "https://docs.rs/fonterator"
 homepage = "http://plopgrizzly.com/fonterator"
 repository = "https://github.com/plopgrizzly/fonterator"
 
-readme = "README.md"
+readme = "readme.md"
 description = "Load fonts as vector graphics in pure Rust - based on RustType"
 keywords = ["font", "truetype", "opentype", "ttf", "otf"]
 categories = ["gui", "rendering"]
 
 exclude = [
 	"examples/*", "CODE_OF_CONDUCT.md", "CONTRIBUTING.md", ".gitignore",
-	"_config.yml", "ISSUE_TEMPLATE.md", "icon.png", "icon.ico"
+	"_config.yml", "ISSUE_TEMPLATE.md", "icon.png", "icon.ico", "font/*"
 ]
 
 [dependencies]
