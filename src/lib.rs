@@ -5,26 +5,7 @@
 //! Fonterator is a pure Rust alternative to libraries like FreeType based on
 //! RustType.
 //!
-//! The current capabilities of Fonterator:
-//!
-//! * Reading TrueType formatted fonts and font collections. This includes
-//!   `*.ttf` as well as a subset of `*.otf` font files.
-//! * Retrieving glyph shapes and commonly used properties for a font and its
-//!   glyphs.
-//! * Laying out glyphs horizontally using horizontal and vertical metrics, and
-//!   glyph-pair-specific kerning.
-//!
-//! Notable things that Fonterator does not support *yet*:
-//!
-//! * OpenType formatted fonts that are not just TrueType fonts (OpenType is a
-//!   superset of TrueType). Notably there is no support yet for cubic Bezier
-//!   curves used in glyphs.
-//! * Ligatures of any kind (‽, etc.).
-//! * Some less common TrueType sub-formats.
-//! * Right-to-left and vertical text layout.
-//!
 //! # Getting Started
-//!
 //! Add the following to your Cargo.toml:
 //!
 //! ```toml

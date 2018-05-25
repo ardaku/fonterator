@@ -7,5 +7,14 @@ Load fonts as vector graphics in pure Rust - based on RustType
 
 ## Features
 **fonterator**'s current features:
+* Load TTF fonts and font collections.
+* Load some OTF fonts and font collections.
+* Automatic kerning and font layout.
 
 **fonterator**'s planned features:
+* Support OpenType formatted fonts that are not just TrueType fonts (OpenType is
+a superset of TrueType). Notably there is no support yet for cubic Bezier curves
+used in glyphs.
+* Support ligatures of any kind (‽, etc.).
+* Support some less common TrueType sub-formats.
+* Support right-to-left and vertical text layout.
