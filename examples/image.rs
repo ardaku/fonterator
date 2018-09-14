@@ -24,25 +24,32 @@ fn main() {
 	for g in font.glyphs("Splat And…    ‽é¿?üæ", (FONT_SIZE, FONT_SIZE)) {
 		data = Data::new();
 
+		let mut first = true;
+
 		// Draw the glyph
 		for i in g.0.draw(x, 0.0) {
 			match i {
-				PathOp::MoveTo(x, y) => {
+				PathOp::Move(x, y, _z) => {
+					if first {
+						first = false;
+					} else {
+						data = data.close();
+					}
 					data = data.move_to(
 						vec![x, y]);
 				}
-				PathOp::LineTo(x, y) => {
+				PathOp::Line(x, y, _z) => {
 					data = data.line_to(vec![x, y]);
 				}
-				PathOp::QuadTo(x, y, cx, cy) => {
+				PathOp::Quad(cx, cy, _cz, x, y, _z) => {
 					data = data.quadratic_curve_to(
 						vec![cx, cy, x, y]);
 				}
-				PathOp::Close => {
-					data = data.close();
-				}
+				_ => { unimplemented!() }
 			}
 		}
+
+		data = data.close();
 
 		group.append(Path::new().set("d", data.clone()));
 

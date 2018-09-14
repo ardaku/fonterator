@@ -67,11 +67,12 @@ pub(crate) struct VMetrics {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) enum PlatformId { // platformID
-   Unicode   = 0,
-   Mac	   = 1,
-   Iso	   = 2,
-   Microsoft = 3
+	Unicode = 0,
+	Mac = 1,
+	Iso = 2,
+	Microsoft = 3,
 }
+
 fn platform_id(v: u16) -> Option<PlatformId> {
 	use tt::PlatformId::*;
 	match v {
@@ -90,6 +91,7 @@ pub(crate) enum MicrosoftEid { // encodingID for PLATFORM_ID_MICROSOFT
    Shiftjis	  =2,
    UnicodeFull   =10
 }
+
 fn microsoft_eid(v: u16) -> Option<MicrosoftEid> {
 	use tt::MicrosoftEid::*;
 	match v {
@@ -134,22 +136,22 @@ fn find_table(data: &[u8], fontstart: usize, tag: &[u8]) -> u32 {
 /// return Some(0) for index 0, and None for all other indices. You can just skip
 /// this step if you know it's that kind of font.
 pub(crate) fn get_font_offset_for_index(font_collection: &[u8], index: i32) -> Option<u32> {
-   // if it's just a font, there's only one valid index
-   if is_font(font_collection) {
-	  return if index == 0 { Some(0) } else { None };
-   }
-   // check if it's a TTC
-   if &font_collection[0..4] == b"ttcf" {
-	  // version 1?
-	  if BE::read_u32(&font_collection[4..]) == 0x00010000 || BE::read_u32(&font_collection[4..]) == 0x00020000 {
-		 let n = BE::read_i32(&font_collection[8..]);
-		 if index >= n {
-			 return None;
-		 }
-		 return Some(BE::read_u32(&font_collection[12+(index as usize)*4..]));
-	  }
-   }
-   return None;
+	// if it's just a font, there's only one valid index
+	if is_font(font_collection) {
+		return if index == 0 { Some(0) } else { None };
+	}
+	// check if it's a TTC
+	if &font_collection[0..4] == b"ttcf" {
+		// version 1?
+		if BE::read_u32(&font_collection[4..]) == 0x00010000 || BE::read_u32(&font_collection[4..]) == 0x00020000 {
+			let n = BE::read_i32(&font_collection[8..]);
+			if index >= n {
+				return None;
+			}
+			return Some(BE::read_u32(&font_collection[12+(index as usize)*4..]));
+		}
+	}
+	return None;
 }
 
 impl<Data: Deref<Target=[u8]>> FontInfo<Data> {

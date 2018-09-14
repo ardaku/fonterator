@@ -53,11 +53,13 @@
 //!   particular Unicode code point. This will have its own identifying number
 //!   unique to the font, its ID.
 
+extern crate afi;
 extern crate byteorder;
 extern crate unicode_normalization;
 
 mod tt;
 
+pub use afi::PathOp;
 use unicode_normalization::UnicodeNormalization;
 
 use std::fmt;
@@ -77,18 +79,6 @@ impl IntoIterator for Path {
 	fn into_iter(self) -> Self::IntoIter {
 		self.0.into_iter()
 	}
-}
-
-/// An operation that builds a path.
-pub enum PathOp {
-	/// Move somewhere else `x, y`.
-	MoveTo(f32, f32),
-	/// Next point in edge `x, y`
-	LineTo(f32, f32),
-	/// Quadratic curve `x, y, cx, cy`
-	QuadTo(f32, f32, f32, f32),
-	/// Close the path
-	Close,
 }
 
 /// A collection of fonts read straight from a font file's data. The data in the
@@ -316,9 +306,9 @@ pub struct GlyphIterator<'a> {
 }
 
 impl<'a> Iterator for GlyphIterator<'a> {
-	type Item = (Glyph<'a>, f32);
+	type Item = (Glyph<'a>, f32, bool);
 
-	fn next(&mut self) -> Option<(Glyph<'a>, f32)> {
+	fn next(&mut self) -> Option<(Glyph<'a>, f32, bool)> {
 		let c = self.string.get(self.cursor);
 
 		if let Some(c) = c {
@@ -335,7 +325,7 @@ impl<'a> Iterator for GlyphIterator<'a> {
 
 			self.last = Some(glyph.clone());
 			self.cursor += 1;
-			Some((glyph, advance))
+			Some((glyph, advance, *c == '\n'))
 		} else {
 			None
 		}
@@ -435,7 +425,7 @@ impl<'a> Glyph<'a> {
 	fn id(&self) -> GlyphId {
 		GlyphId(self.inner.1)
 	}
-	/// Convert the glyph to an iterator over PathOps
+	/// Convert the glyph to an iterator over `PathOp`s
 	pub fn draw(&self, point_x: f32, mut point_y: f32) -> Path {
 		use tt::VertexType;
 		point_y += self.font().v_metrics(self.v);
@@ -445,14 +435,13 @@ impl<'a> Glyph<'a> {
 			font.info.get_glyph_shape(id.0).unwrap_or_else(Vec::new)
 		};
 		let mut path = Vec::new();
-		let mut start = true;
 		for v in shape {
 			let x = v.x as f32 * self.v.0 + point_x;
 			let y = -v.y as f32 * self.v.1 + point_y;
 
 			match v.vertex_type() {
 				VertexType::LineTo => {
-					path.push(PathOp::LineTo(x, y));
+					path.push(PathOp::Line(x, y, 0.0));
 				}
 				VertexType::CurveTo => {
 					let cx = v.cx as f32 * self.v.0
@@ -460,19 +449,13 @@ impl<'a> Glyph<'a> {
 					let cy = -v.cy as f32 * self.v.1
 						+ point_y;
 
-					path.push(PathOp::QuadTo(x, y, cx, cy));
+					path.push(PathOp::Quad(cx, cy, 0.0, x, y, 0.0));
 				}
 				VertexType::MoveTo => {
-					if start {
-						start = false;
-					} else {
-						path.push(PathOp::Close);
-					}
-					path.push(PathOp::MoveTo(x, y));
+					path.push(PathOp::Move(x, y, 0.0));
 				}
 			}
 		}
-		path.push(PathOp::Close);
 
 		Path(path)
 	}

@@ -24,7 +24,7 @@ documentation = "https://docs.rs/fonterator"
 homepage = "http://plopgrizzly.com/fonterator"
 repository = "https://github.com/plopgrizzly/fonterator"
 
-readme = "readme.md"
+readme = "README.md"
 description = "Load fonts as vector graphics in pure Rust - based on RustType"
 keywords = ["font", "truetype", "opentype", "ttf", "otf"]
 categories = ["gui", "rendering"]
@@ -35,8 +35,9 @@ exclude = [
 ]
 
 [dependencies]
-byteorder = "^1.2"
-unicode-normalization = "^0.1"
+afi = { path = "../afi" } # "0.7"
+byteorder = "1.2"
+unicode-normalization = "0.1"
 
 [dev-dependencies]
 svg = "^0.5"
