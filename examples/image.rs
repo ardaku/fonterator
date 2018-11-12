@@ -29,7 +29,7 @@ fn main() {
 		// Draw the glyph
 		for i in g.0.draw(x, 0.0) {
 			match i {
-				PathOp::Move(x, y, _z) => {
+				PathOp::Move(x, y) => {
 					if first {
 						first = false;
 					} else {
@@ -38,10 +38,10 @@ fn main() {
 					data = data.move_to(
 						vec![x, y]);
 				}
-				PathOp::Line(x, y, _z) => {
+				PathOp::Line(x, y) => {
 					data = data.line_to(vec![x, y]);
 				}
-				PathOp::Quad(cx, cy, _cz, x, y, _z) => {
+				PathOp::Quad(cx, cy, x, y) => {
 					data = data.quadratic_curve_to(
 						vec![cx, cy, x, y]);
 				}

@@ -53,13 +53,13 @@
 //!   particular Unicode code point. This will have its own identifying number
 //!   unique to the font, its ID.
 
-extern crate afi;
+extern crate footile;
 extern crate byteorder;
 extern crate unicode_normalization;
 
 mod tt;
 
-pub use afi::PathOp;
+pub use footile::PathOp;
 use unicode_normalization::UnicodeNormalization;
 
 use std::fmt;
@@ -70,14 +70,43 @@ use std::sync::Arc;
 struct Vec2(pub f32, pub f32);
 
 /// An iterator over `PathOp`.
-pub struct Path(Vec<PathOp>);
+pub struct Path {
+	v: Vec2,
+    point_x: f32,
+    point_y: f32,
+    shape: Vec<tt::Vertex>,
+    cursor: usize,
+} // (pub Vec<PathOp>);
 
-impl IntoIterator for Path {
+impl Iterator for Path {
 	type Item = PathOp;
-	type IntoIter = ::std::vec::IntoIter<PathOp>;
 
-	fn into_iter(self) -> Self::IntoIter {
-		self.0.into_iter()
+	fn next(&mut self) -> Option<PathOp> {
+        let v = *self.shape.get(self.cursor)?;
+
+		let x = v.x as f32 * self.v.0 + self.point_x;
+		let y = -v.y as f32 * self.v.1 + self.point_y;
+
+		use tt::VertexType;
+
+        self.cursor += 1;
+
+		match v.vertex_type() {
+			VertexType::LineTo => {
+				Some(PathOp::Line(x, y))
+			}
+			VertexType::CurveTo => {
+				let cx = v.cx as f32 * self.v.0
+					+ self.point_x;
+				let cy = -v.cy as f32 * self.v.1
+					+ self.point_y;
+
+                Some(PathOp::Quad(cx, cy, x, y))
+			}
+			VertexType::MoveTo => {
+				Some(PathOp::Move(x, y))
+			}
+		}
 	}
 }
 
@@ -427,37 +456,16 @@ impl<'a> Glyph<'a> {
 	}
 	/// Convert the glyph to an iterator over `PathOp`s
 	pub fn draw(&self, point_x: f32, mut point_y: f32) -> Path {
-		use tt::VertexType;
 		point_y += self.font().v_metrics(self.v);
 		let shape = {
 			let (font, id) = (self.font(), self.id());
 
 			font.info.get_glyph_shape(id.0).unwrap_or_else(Vec::new)
 		};
-		let mut path = Vec::new();
-		for v in shape {
-			let x = v.x as f32 * self.v.0 + point_x;
-			let y = -v.y as f32 * self.v.1 + point_y;
 
-			match v.vertex_type() {
-				VertexType::LineTo => {
-					path.push(PathOp::Line(x, y, 0.0));
-				}
-				VertexType::CurveTo => {
-					let cx = v.cx as f32 * self.v.0
-						+ point_x;
-					let cy = -v.cy as f32 * self.v.1
-						+ point_y;
-
-					path.push(PathOp::Quad(cx, cy, 0.0, x, y, 0.0));
-				}
-				VertexType::MoveTo => {
-					path.push(PathOp::Move(x, y, 0.0));
-				}
-			}
-		}
-
-		Path(path)
+        Path {
+            shape, point_x, point_y, v: self.v, cursor: 0,
+        }
 	}
 }
 
