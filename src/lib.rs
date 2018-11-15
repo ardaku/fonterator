@@ -70,13 +70,33 @@ use std::sync::Arc;
 struct Vec2(pub f32, pub f32);
 
 /// An iterator over `PathOp`.
+pub struct Path2D<'a, I: Iterator<Item = &'a PathOp>>(pub I);
+
+impl<'a, I> Iterator for Path2D<'a, I>
+    where I: Iterator<Item = &'a PathOp>
+{
+	type Item = PathOp;
+
+	fn next(&mut self) -> Option<PathOp> {
+        Some(match *self.0.next()? {
+            PathOp::Close() => PathOp::Close(),
+            PathOp::Move(x, y) => PathOp::Move(x, y),
+            PathOp::Line(x, y) => PathOp::Line(x, y),
+            PathOp::Quad(cx, cy, x, y) => PathOp::Quad(cx, cy, x, y),
+            PathOp::Cubic(ax, ay, bx, by, x, y) => PathOp::Cubic(ax, ay, bx, by, x, y),
+            PathOp::PenWidth(w) => PathOp::PenWidth(w),
+        })
+	}
+}
+
+/// An iterator over `PathOp`.
 pub struct Path {
 	v: Vec2,
     point_x: f32,
     point_y: f32,
     shape: Vec<tt::Vertex>,
     cursor: usize,
-} // (pub Vec<PathOp>);
+}
 
 impl Iterator for Path {
 	type Item = PathOp;
