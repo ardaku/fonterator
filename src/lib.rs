@@ -59,7 +59,7 @@ extern crate unicode_normalization;
 
 mod tt;
 
-pub use footile::PathOp;
+pub use footile::{ PathOp, PathBuilder, Path2D };
 use unicode_normalization::UnicodeNormalization;
 
 use std::fmt;
@@ -68,62 +68,6 @@ use std::sync::Arc;
 /// A 2D vector
 #[derive(Copy, Clone)]
 struct Vec2(pub f32, pub f32);
-
-/// An iterator over `PathOp`.
-pub struct Path2D<'a, I: Iterator<Item = &'a PathOp>>(pub I);
-
-impl<'a, I> Iterator for Path2D<'a, I>
-where
-    I: Iterator<Item = &'a PathOp>,
-{
-    type Item = PathOp;
-
-    fn next(&mut self) -> Option<PathOp> {
-        Some(match *self.0.next()? {
-            PathOp::Close() => PathOp::Close(),
-            PathOp::Move(x, y) => PathOp::Move(x, y),
-            PathOp::Line(x, y) => PathOp::Line(x, y),
-            PathOp::Quad(cx, cy, x, y) => PathOp::Quad(cx, cy, x, y),
-            PathOp::Cubic(ax, ay, bx, by, x, y) => PathOp::Cubic(ax, ay, bx, by, x, y),
-            PathOp::PenWidth(w) => PathOp::PenWidth(w),
-        })
-    }
-}
-
-/// An iterator over `PathOp`.
-pub struct Path {
-    v: Vec2,
-    point_x: f32,
-    point_y: f32,
-    shape: Vec<tt::Vertex>,
-    cursor: usize,
-}
-
-impl Iterator for Path {
-    type Item = PathOp;
-
-    fn next(&mut self) -> Option<PathOp> {
-        let v = *self.shape.get(self.cursor)?;
-
-        let x = v.x as f32 * self.v.0 + self.point_x;
-        let y = -v.y as f32 * self.v.1 + self.point_y;
-
-        use tt::VertexType;
-
-        self.cursor += 1;
-
-        match v.vertex_type() {
-            VertexType::LineTo => Some(PathOp::Line(x, y)),
-            VertexType::CurveTo => {
-                let cx = v.cx as f32 * self.v.0 + self.point_x;
-                let cy = -v.cy as f32 * self.v.1 + self.point_y;
-
-                Some(PathOp::Quad(cx, cy, x, y))
-            }
-            VertexType::MoveTo => Some(PathOp::Move(x, y)),
-        }
-    }
-}
 
 /// A collection of fonts read straight from a font file's data. The data in the
 /// collection is not validated. This structure may or may not own the font
@@ -473,21 +417,36 @@ impl<'a> Glyph<'a> {
         GlyphId(self.inner.1)
     }
     /// Convert the glyph to an iterator over `PathOp`s
-    pub fn draw(&self, point_x: f32, mut point_y: f32) -> Path {
+    pub fn draw(&self, point_x: f32, mut point_y: f32) -> Path2D {
+        let mut path = PathBuilder::new().absolute();
+
         point_y += self.font().v_metrics(self.v);
+
         let shape = {
             let (font, id) = (self.font(), self.id());
 
             font.info.get_glyph_shape(id.0).unwrap_or_else(Vec::new)
         };
 
-        Path {
-            shape,
-            point_x,
-            point_y,
-            v: self.v,
-            cursor: 0,
+        for v in shape {
+            let x = v.x as f32 * self.v.0 + point_x;
+            let y = -v.y as f32 * self.v.1 + point_y;
+
+            use tt::VertexType;
+
+            match v.vertex_type() {
+                VertexType::LineTo => path = path.line_to(x, y),
+                VertexType::CurveTo => {
+                    let cx = v.cx as f32 * self.v.0 + point_x;
+                    let cy = -v.cy as f32 * self.v.1 + point_y;
+
+                    path = path.quad_to(cx, cy, x, y);
+                }
+                VertexType::MoveTo => path = path.move_to(x, y),
+            }
         }
+
+        path.build()
     }
 }
 
