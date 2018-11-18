@@ -399,6 +399,36 @@ impl<'a> Font<'a> {
             last: None,
         }
     }
+    /// Render a string.
+    pub fn render<T: ToString>(&'a self, text: T, scale: (f32, f32),
+        point_x: f32, mut point_y: f32) -> Path2D
+    {
+        let mut path = PathBuilder::new().absolute();
+        point_y += self.v_metrics(Vec2(scale.0, scale.1));
+        let mut x = point_x;
+        let mut y = point_y;
+        let glyphs = self.glyphs(text, scale);
+
+        println!("printing {:?}", glyphs.string);
+
+        for g in glyphs {
+            println!("one");
+            // Check for newline
+            if g.2 {
+                x = point_x;
+                y += scale.1;
+                continue;
+            }
+
+            // Draw the glyph
+            return g.0.draw(x, y);
+
+            // Position next glyph
+            x += g.1;
+        }
+
+        path.build()
+    }
     /// Get the proper spacing from the start of one character to the next.
     fn kerning(&self, scale: (f32, f32), v: Vec2, first: &Glyph<'a>, second: &Glyph<'a>) -> f32 {
         self.pair_kerning(scale, v, first.id(), second.id())

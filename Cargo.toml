@@ -35,7 +35,7 @@ exclude = [
 ]
 
 [dependencies]
-footile = "0.1"
+footile = { path = "../footile" } # "0.1"
 byteorder = "1.2"
 unicode-normalization = "0.1"
 
