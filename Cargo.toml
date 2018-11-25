@@ -14,7 +14,7 @@
 
 [package]
 name = "fonterator"
-version = "0.1.0"
+version = "0.2.0-pre0"
 authors = [
 	"Jeron Lau <jeron.lau@plopgrizzly.com>"
 ]
