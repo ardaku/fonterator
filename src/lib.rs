@@ -324,21 +324,9 @@ impl<'a> PathIterator<'a> {
         self
     }
 
-/*    /// Modify the iterator to align characters horizontally.  This is the default.
-    pub fn horizontal(mut self) -> &mut Self {
-        self.vt = false;
-        self
-    }*/
-    
-    /// Modify the iterator to align characters vertically rather than horizontally.
-    pub fn right_to_left(&mut self) -> &mut Self {
+    /// Modify the iterator to align characters right to left.
+    pub fn right_to_left(mut self) -> Self {
         self.rl = true;
-        self
-    }
-
-    /// Modify the iterator to align characters horizontally.  This is the default.
-    pub fn left_to_right(&mut self) -> &mut Self {
-        self.rl = false;
         self
     }
 }
@@ -360,7 +348,7 @@ impl<'a> Iterator for PathIterator<'a> {
                 self.advance = 0.0;
                 if self.vt { // Vertical text
                     self.cy = self.y;
-                    self.cx += glyph.font().v_metrics(glyph.v);
+                    self.cx += if self.rl { -1.0 } else { 1.0 } * glyph.font().v_metrics(glyph.v);
                     self.f = 0.0;
                 } else { // Horizontal text
                     self.cx = self.x;
@@ -378,7 +366,7 @@ impl<'a> Iterator for PathIterator<'a> {
                     self.f = 0.0;
                     self.cy += glyph.font().v_metrics(glyph.v);
                 } else {
-                    self.cx += glyph.font().v_metrics(glyph.v) * 4.0;
+                    self.cx += glyph.font().v_metrics(glyph.v) * if self.rl { -4.0 } else { 4.0 };
                 }
                 return Self::next(self);
             }
@@ -392,11 +380,10 @@ impl<'a> Iterator for PathIterator<'a> {
                     self.cy += glyph.font().v_metrics(glyph.v);
                 }
             } else { // Horizontal text
-                self.cx += self.advance;
+                self.cx += if self.rl { -self.advance } else { self.advance };
             }
             self.advance = advance;
             self.glyph = Some(glyph);
-
         }
 
         let shape = {
@@ -416,7 +403,7 @@ impl<'a> Iterator for PathIterator<'a> {
         let glyph = self.glyph.as_ref().unwrap();
         let ay = glyph.font().v_metrics(glyph.v);
 
-        let x = v.x as f32 * glyph.v.0 + self.cx + self.f;
+        let x = v.x as f32 * glyph.v.0 + self.cx + if self.rl { -self.advance - self.f } else { self.f };
         let y = -v.y as f32 * glyph.v.1 + self.cy + ay;
 
         use tt::VertexType;
@@ -424,7 +411,7 @@ impl<'a> Iterator for PathIterator<'a> {
         match v.vertex_type() {
             VertexType::LineTo => unsafe { OP = PathOp::Line(x, y) },
             VertexType::CurveTo => {
-                let cx = v.cx as f32 * glyph.v.0 + self.cx + self.f;
+                let cx = v.cx as f32 * glyph.v.0 + self.cx + if self.rl { -self.advance - self.f } else { self.f };
                 let cy = -v.cy as f32 * glyph.v.1 + self.cy + ay;
 
                 unsafe { OP = PathOp::Quad(cx, cy, x, y) };
