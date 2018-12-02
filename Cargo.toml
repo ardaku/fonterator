@@ -14,14 +14,14 @@
 
 [package]
 name = "fonterator"
-version = "0.2.0-pre0"
+version = "0.2.0"
 authors = [
 	"Jeron Lau <jeron.lau@plopgrizzly.com>"
 ]
 
 license = "MIT / BSL-1.0"
 documentation = "https://docs.rs/fonterator"
-homepage = "http://plopgrizzly.com/fonterator"
+homepage = "https://gitlab.com/plopgrizzly/barg/fonterator"
 repository = "https://github.com/plopgrizzly/fonterator"
 
 readme = "README.md"

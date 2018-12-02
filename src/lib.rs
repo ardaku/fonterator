@@ -3,56 +3,49 @@
 // Dual-licensed under either the MIT License or the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 
-//! Fonterator is a pure Rust alternative to libraries like FreeType based on
-//! RustType.
+//! Fonterator is a pure Rust font loader.  When you want to render text, fonterator gives you an
+//! iterator over [footile](https://crates.io/crates/footile) `PathOp`s, which you can easily pass
+//! right into footile.
 //!
-//! # Getting Started
-//! Add the following to your Cargo.toml:
+//! # Simple Example
+//! In Cargo.toml,
 //!
 //! ```toml
 //! [dependencies]
-//! fonterator = "0.1.0"
+//! fonterator = "0.2.0"
 //! ```
 //!
-//! To hit the ground running with Fonterator, look at the `image.rs` example
-//! supplied with the crate. It demonstrates loading a font file, rasterising an
-//! arbitrary string, and saving as an SVG. If you prefer to
-//! just look at the documentation, the entry point for loading fonts is
-//! `FontCollection`, from which you can access individual fonts, then their
-//! glyphs.
-//!
-//! # Unicode terminology
-//!
-//! This crate uses terminology for computerised typography as specified by the
-//! Unicode standard. If you are not sure of the differences between a code
-//! point, a character, and a glyph, you may want to check the [official Unicode
-//! glossary](http://unicode.org/glossary/), or alternatively, here's my take on
-//! it from a practical perspective:
-//!
-//! * A character is what you would conventionally call a single symbol,
-//!   independent of its appearance or representation in a particular font.
-//!   Examples include `a`, `A`, `ä`, `å`, `1`, `*`, `Ω`, etc.
-//! * A Unicode code point is the particular number that the Unicode standard
-//!   associates with a particular character. Note however that code points also
-//!   exist for things not conventionally thought of as characters by
-//!   themselves, but can be combined to form characters, such as diacritics
-//!   like accents. These "characters" are known in Unicode as "combining
-//!   characters". E.g., a diaeresis (`¨`) has the code point U+0308. If this
-//!   code point follows the code point U+0055 (the letter `u`), this sequence
-//!   represents the character `ü`. Note that there is also a single codepoint
-//!   for `ü`, U+00FC. This means that what visually looks like the same string
-//!   can have multiple different Unicode representations. Some fonts will have
-//!   glyphs (see below) for one sequence of codepoints, but not another that
-//!   has the same meaning. To deal with this problem it is recommended to use
-//!   Unicode normalisation, as provided by, for example, the
-//!   [unicode-normalization](http://crates.io/crates/unicode-normalization)
-//!   crate, to convert to code point sequences that work with the font in
-//!   question. Typically a font is more likely to support a single code point
-//!   vs. a sequence with the same meaning, so the best normalisation to use is
-//!   "canonical recomposition", known as NFC in the normalisation crate.
-//! * A glyph is a particular font's shape to draw the character for a
-//!   particular Unicode code point. This will have its own identifying number
-//!   unique to the font, its ID.
+//! In main.rs,
+//! ```
+//! extern crate fonterator;
+//! extern crate footile;
+//! 
+//! use fonterator::Font;
+//! use footile::{FillRule, Plotter, Raster, Rgba8};
+//! 
+//! const FONT: &[u8] = include_bytes!("../font/LiberationSans-Regular.ttf");
+//! 
+//! fn main() {
+//!     // This only succeeds if collection consists of one font
+//!     let font = Font::new(FONT).expect("Failed to load font!");
+//! 
+//!     // Init rendering
+//!     let mut p = Plotter::new(2048, 2048);
+//!     let mut r = Raster::new(p.width(), p.height());
+//! 
+//!     // Render the text
+//!     let path = font.render(
+//!         "Héllö,\nWørłd!", /*text*/
+//!         (0.0, 0.0),       /*position*/
+//!         (256.0, 256.0),   /*size*/
+//!     );
+//!     r.over(
+//!         p.fill(path, FillRule::NonZero),
+//!         Rgba8::rgb(0, 0, 0), /*color*/
+//!     );
+//!     r.write_png("main.png").unwrap(); /*save as PNG*/
+//! }
+//! ```
 
 extern crate byteorder;
 extern crate footile;
@@ -295,7 +288,7 @@ pub struct PathIterator<'a> {
     rl: bool,     // Should text be written right to left?
     ch: char,     // Current character.
     advance: f32, // Advance character width
-    f: f32,       // When drawing vertically, how much of square character is taken up by latin letters.
+    f: f32, // When drawing vertically, how much of square character is taken up by latin letters.
 }
 
 static mut OP: PathOp = PathOp::Close();
@@ -346,11 +339,13 @@ impl<'a> Iterator for PathIterator<'a> {
             let (glyph, advance) = self.glyph_iter.next()?;
             if self.ch == '\n' {
                 self.advance = 0.0;
-                if self.vt { // Vertical text
+                if self.vt {
+                    // Vertical text
                     self.cy = self.y;
                     self.cx += if self.rl { -1.0 } else { 1.0 } * glyph.font().v_metrics(glyph.v);
                     self.f = 0.0;
-                } else { // Horizontal text
+                } else {
+                    // Horizontal text
                     self.cx = self.x;
                     self.cy += glyph.font().v_metrics(glyph.v);
                 }
@@ -371,15 +366,19 @@ impl<'a> Iterator for PathIterator<'a> {
                 return Self::next(self);
             }
             self.oc = 0;
-            if self.vt { // Vertical text
+            if self.vt {
+                // Vertical text
                 self.f += self.advance;
                 if self.ch == '.' {
                     self.f = glyph.font().v_metrics(glyph.v) - advance;
-                } else if self.f + advance >= glyph.font().v_metrics(glyph.v) && advance <= glyph.font().v_metrics(glyph.v) {
+                } else if self.f + advance >= glyph.font().v_metrics(glyph.v)
+                    && advance <= glyph.font().v_metrics(glyph.v)
+                {
                     self.f = 0.0;
                     self.cy += glyph.font().v_metrics(glyph.v);
                 }
-            } else { // Horizontal text
+            } else {
+                // Horizontal text
                 self.cx += if self.rl { -self.advance } else { self.advance };
             }
             self.advance = advance;
@@ -403,7 +402,11 @@ impl<'a> Iterator for PathIterator<'a> {
         let glyph = self.glyph.as_ref().unwrap();
         let ay = glyph.font().v_metrics(glyph.v);
 
-        let x = v.x as f32 * glyph.v.0 + self.cx + if self.rl { -self.advance - self.f } else { self.f };
+        let x = v.x as f32 * glyph.v.0 + self.cx + if self.rl {
+            -self.advance - self.f
+        } else {
+            self.f
+        };
         let y = -v.y as f32 * glyph.v.1 + self.cy + ay;
 
         use tt::VertexType;
@@ -411,7 +414,11 @@ impl<'a> Iterator for PathIterator<'a> {
         match v.vertex_type() {
             VertexType::LineTo => unsafe { OP = PathOp::Line(x, y) },
             VertexType::CurveTo => {
-                let cx = v.cx as f32 * glyph.v.0 + self.cx + if self.rl { -self.advance - self.f } else { self.f };
+                let cx = v.cx as f32 * glyph.v.0 + self.cx + if self.rl {
+                    -self.advance - self.f
+                } else {
+                    self.f
+                };
                 let cy = -v.cy as f32 * glyph.v.1 + self.cy + ay;
 
                 unsafe { OP = PathOp::Quad(cx, cy, x, y) };
