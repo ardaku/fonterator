@@ -1,6 +1,7 @@
-// "fonterator" crate - Licensed under the MIT LICENSE
-//  * Copyright (c) 2018  Jeron A. Lau <jeron.lau@plopgrizzly.com>
-//  * Copyright (c) 2016  Dylan Ede
+// Copyright Jeron Lau 2018.
+// Copyright Dylan Ede 2016.
+// Dual-licensed under either the MIT License or the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 
 //! Fonterator is a pure Rust alternative to libraries like FreeType based on
 //! RustType.
@@ -59,7 +60,7 @@ extern crate unicode_normalization;
 
 mod tt;
 
-pub use footile::{ PathOp, PathBuilder, Path2D };
+pub use footile::{Path2D, PathBuilder, PathOp};
 use unicode_normalization::UnicodeNormalization;
 
 use std::fmt;
@@ -220,6 +221,7 @@ impl<'a> FontCollection<'a> {
 
         Ok(FontCollection(bytes))
     }
+
     /// If this `FontCollection` holds a single font, or a TrueType Collection
     /// containing only one font, return that as a `Font`. The `FontCollection`
     /// is consumed.
@@ -249,6 +251,7 @@ impl<'a> FontCollection<'a> {
         let info = tt::FontInfo::new(self.0, offset as usize).ok_or(Error::IllFormed)?;
         Ok(Font { info })
     }
+
     /// Gets the font at index `i` in the font collection, if it exists and is
     /// valid. The produced font borrows the font data that is either borrowed
     /// or owned by this font collection.
@@ -258,6 +261,7 @@ impl<'a> FontCollection<'a> {
         let info = tt::FontInfo::new(self.0.clone(), offset as usize).ok_or(Error::IllFormed)?;
         Ok(Font { info })
     }
+
     /// Converts `self` into an `Iterator` yielding each `Font` that exists
     /// within the collection.
     pub fn into_fonts(self) -> Vec<Font<'a>> {
@@ -274,6 +278,115 @@ impl<'a> FontCollection<'a> {
         }
 
         fonts
+    }
+}
+
+/// An iterator created by `Font` for `PathOp`s.
+pub struct PathIterator<'a> {
+    glyph_iter: GlyphIterator<'a>,
+    glyph: Option<Glyph<'a>>,
+    x: f32,  // initial x (for Return and Vertical Tab)
+    y: f32,  // initial y (for Vertical Alignment for East Asian languages)
+    cx: f32, // current x
+    cy: f32, // current y
+    oc: usize,
+    vt: bool,     // Should text be written vertically?
+    ch: char,     // Current character.
+    advance: f32, // Advance character width
+}
+
+static mut OP: PathOp = PathOp::Close();
+
+impl<'a> PathIterator<'a> {
+    fn new(glyph_iter: GlyphIterator<'a>, xy: (f32, f32)) -> Self {
+        PathIterator {
+            glyph_iter,
+            glyph: None,
+            x: xy.0,
+            y: xy.1,
+            cx: xy.0,
+            cy: xy.1,
+            oc: 0,
+            vt: false,
+            ch: '\0',
+            advance: 0.0,
+        }
+    }
+
+    /// Modify the iterator to align characters vertically rather than horizontally.
+    pub fn vertical(&mut self) -> &mut Self {
+        self.vt = true;
+        self
+    }
+
+    /// Modify the iterator to align characters horizontally.  This is the default.
+    pub fn horizontal(&mut self) -> &mut Self {
+        self.vt = false;
+        self
+    }
+}
+
+impl<'a> Iterator for PathIterator<'a> {
+    type Item = &'static PathOp;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.ch == '\0' {
+            self.ch = '\x01';
+            return Some(&PathOp::PenWidth(0.0));
+        }
+
+        // If no glyph, then get next.
+        if self.glyph.is_none() {
+            self.ch = *self.glyph_iter.string.get(self.glyph_iter.cursor)?;
+            let (glyph, advance) = self.glyph_iter.next()?;
+            if self.ch == '\n' {
+                self.advance = 0.0;
+                self.cx = self.x;
+                self.cy += glyph.font().v_metrics(glyph.v);
+                return Self::next(self);
+            }
+            self.glyph = Some(glyph);
+            self.oc = 0;
+            self.cx += self.advance;
+            self.advance = advance;
+        }
+
+        let shape = {
+            let glyph = self.glyph.as_ref().unwrap();
+            let (font, id) = (glyph.font(), glyph.id());
+
+            font.info.get_glyph_shape(id.0).unwrap_or_else(Vec::new)
+        };
+
+        let v = if let Some(v) = shape.get(self.oc) {
+            v
+        } else {
+            self.glyph = None;
+            return Self::next(self);
+        };
+
+        let glyph = self.glyph.as_ref().unwrap();
+        let ay = glyph.font().v_metrics(glyph.v);
+
+        let x = v.x as f32 * glyph.v.0 + self.cx;
+        let y = -v.y as f32 * glyph.v.1 + self.cy + ay;
+
+        use tt::VertexType;
+
+        match v.vertex_type() {
+            VertexType::LineTo => unsafe { OP = PathOp::Line(x, y) },
+            VertexType::CurveTo => {
+                let cx = v.cx as f32 * glyph.v.0 + self.cx;
+                let cy = -v.cy as f32 * glyph.v.1 + self.cy + ay;
+
+                unsafe { OP = PathOp::Quad(cx, cy, x, y) };
+            }
+            VertexType::MoveTo => unsafe { OP = PathOp::Move(x, y) },
+        }
+
+        self.oc += 1;
+
+        unsafe { Some(&OP) }
     }
 }
 
@@ -294,9 +407,9 @@ pub struct GlyphIterator<'a> {
 }
 
 impl<'a> Iterator for GlyphIterator<'a> {
-    type Item = (Glyph<'a>, f32, bool);
+    type Item = (Glyph<'a>, f32);
 
-    fn next(&mut self) -> Option<(Glyph<'a>, f32, bool)> {
+    fn next(&mut self) -> Option<(Glyph<'a>, f32)> {
         let c = self.string.get(self.cursor);
 
         if let Some(c) = c {
@@ -319,7 +432,7 @@ impl<'a> Iterator for GlyphIterator<'a> {
 
             self.last = Some(glyph.clone());
             self.cursor += 1;
-            Some((glyph, advance, *c == '\n'))
+            Some((glyph, advance))
         } else {
             None
         }
@@ -368,6 +481,7 @@ impl<'a> Font<'a> {
         // font clone either a reference clone, or arc clone
         Glyph::new(GlyphInner(self.clone(), gid.0), v)
     }
+
     /// Returns additional kerning to apply as well as that given by HMetrics
     /// for a particular pair of glyphs.
     fn pair_kerning<A, B>(&self, scale: (f32, f32), v: Vec2, first: A, second: B) -> f32
@@ -399,36 +513,12 @@ impl<'a> Font<'a> {
             last: None,
         }
     }
+
     /// Render a string.
-    pub fn render<T: ToString>(&'a self, text: T, scale: (f32, f32),
-        point_x: f32, mut point_y: f32) -> Path2D
-    {
-        let mut path = PathBuilder::new().absolute();
-        point_y += self.v_metrics(Vec2(scale.0, scale.1));
-        let mut x = point_x;
-        let mut y = point_y;
-        let glyphs = self.glyphs(text, scale);
-
-        println!("printing {:?}", glyphs.string);
-
-        for g in glyphs {
-            println!("one");
-            // Check for newline
-            if g.2 {
-                x = point_x;
-                y += scale.1;
-                continue;
-            }
-
-            // Draw the glyph
-            return g.0.draw(x, y);
-
-            // Position next glyph
-            x += g.1;
-        }
-
-        path.build()
+    pub fn render<T: ToString>(&self, text: T, xy: (f32, f32), wh: (f32, f32)) -> PathIterator {
+        PathIterator::new(self.glyphs(text, wh), xy)
     }
+
     /// Get the proper spacing from the start of one character to the next.
     fn kerning(&self, scale: (f32, f32), v: Vec2, first: &Glyph<'a>, second: &Glyph<'a>) -> f32 {
         self.pair_kerning(scale, v, first.id(), second.id())
@@ -438,14 +528,17 @@ impl<'a> Glyph<'a> {
     fn new(inner: GlyphInner<'a>, v: Vec2) -> Glyph<'a> {
         Glyph { inner, v }
     }
+
     /// The font to which this glyph belongs.
     fn font(&self) -> &Font<'a> {
         &self.inner.0
     }
+
     /// The glyph identifier for this glyph.
     fn id(&self) -> GlyphId {
         GlyphId(self.inner.1)
     }
+
     /// Convert the glyph to an iterator over `PathOp`s
     pub fn draw(&self, point_x: f32, mut point_y: f32) -> Path2D {
         let mut path = PathBuilder::new().absolute();
