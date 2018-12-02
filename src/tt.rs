@@ -817,9 +817,4 @@ impl<Data: Deref<Target = [u8]>> FontInfo<Data> {
         let fheight = BE::read_i16(&hhea[4..]) as f32 - BE::read_i16(&hhea[6..]) as f32;
         height / fheight
     }
-
-    /// Returns the units per EM square of this font.
-    pub(crate) fn units_per_em(&self) -> u16 {
-        BE::read_u16(&self.data[self.head as usize + 18..])
-    }
 }

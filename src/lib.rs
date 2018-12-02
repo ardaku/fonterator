@@ -60,7 +60,8 @@ extern crate unicode_normalization;
 
 mod tt;
 
-pub use footile::{Path2D, PathBuilder, PathOp};
+/// PathOp from Footile.
+pub use footile::PathOp;
 use unicode_normalization::UnicodeNormalization;
 
 use std::fmt;
@@ -131,7 +132,7 @@ struct GlyphId(pub u32);
 /// A single glyph of a font. this is a thin wrapper referring to the font,
 /// glyph id and scaling information.
 #[derive(Clone)]
-pub struct Glyph<'a> {
+struct Glyph<'a> {
     inner: GlyphInner<'a>,
     v: Vec2,
 }
@@ -291,8 +292,10 @@ pub struct PathIterator<'a> {
     cy: f32, // current y
     oc: usize,
     vt: bool,     // Should text be written vertically?
+    rl: bool,     // Should text be written right to left?
     ch: char,     // Current character.
     advance: f32, // Advance character width
+    f: f32,       // When drawing vertically, how much of square character is taken up by latin letters.
 }
 
 static mut OP: PathOp = PathOp::Close();
@@ -308,20 +311,34 @@ impl<'a> PathIterator<'a> {
             cy: xy.1,
             oc: 0,
             vt: false,
+            rl: false,
             ch: '\0',
             advance: 0.0,
+            f: 0.0,
         }
     }
 
     /// Modify the iterator to align characters vertically rather than horizontally.
-    pub fn vertical(&mut self) -> &mut Self {
+    pub fn vertical(mut self) -> Self {
         self.vt = true;
         self
     }
 
-    /// Modify the iterator to align characters horizontally.  This is the default.
-    pub fn horizontal(&mut self) -> &mut Self {
+/*    /// Modify the iterator to align characters horizontally.  This is the default.
+    pub fn horizontal(mut self) -> &mut Self {
         self.vt = false;
+        self
+    }*/
+    
+    /// Modify the iterator to align characters vertically rather than horizontally.
+    pub fn right_to_left(&mut self) -> &mut Self {
+        self.rl = true;
+        self
+    }
+
+    /// Modify the iterator to align characters horizontally.  This is the default.
+    pub fn left_to_right(&mut self) -> &mut Self {
+        self.rl = false;
         self
     }
 }
@@ -341,14 +358,45 @@ impl<'a> Iterator for PathIterator<'a> {
             let (glyph, advance) = self.glyph_iter.next()?;
             if self.ch == '\n' {
                 self.advance = 0.0;
-                self.cx = self.x;
-                self.cy += glyph.font().v_metrics(glyph.v);
+                if self.vt { // Vertical text
+                    self.cy = self.y;
+                    self.cx += glyph.font().v_metrics(glyph.v);
+                    self.f = 0.0;
+                } else { // Horizontal text
+                    self.cx = self.x;
+                    self.cy += glyph.font().v_metrics(glyph.v);
+                }
+                return Self::next(self);
+            } else if self.ch == ' ' && self.vt {
+                self.advance = 0.0;
+                self.f = 0.0;
+                self.cy += glyph.font().v_metrics(glyph.v) * 2.0;
+                return Self::next(self);
+            } else if self.ch == '\t' {
+                if self.vt {
+                    self.advance = 0.0;
+                    self.f = 0.0;
+                    self.cy += glyph.font().v_metrics(glyph.v);
+                } else {
+                    self.cx += glyph.font().v_metrics(glyph.v) * 4.0;
+                }
                 return Self::next(self);
             }
-            self.glyph = Some(glyph);
             self.oc = 0;
-            self.cx += self.advance;
+            if self.vt { // Vertical text
+                self.f += self.advance;
+                if self.ch == '.' {
+                    self.f = glyph.font().v_metrics(glyph.v) - advance;
+                } else if self.f + advance >= glyph.font().v_metrics(glyph.v) && advance <= glyph.font().v_metrics(glyph.v) {
+                    self.f = 0.0;
+                    self.cy += glyph.font().v_metrics(glyph.v);
+                }
+            } else { // Horizontal text
+                self.cx += self.advance;
+            }
             self.advance = advance;
+            self.glyph = Some(glyph);
+
         }
 
         let shape = {
@@ -368,7 +416,7 @@ impl<'a> Iterator for PathIterator<'a> {
         let glyph = self.glyph.as_ref().unwrap();
         let ay = glyph.font().v_metrics(glyph.v);
 
-        let x = v.x as f32 * glyph.v.0 + self.cx;
+        let x = v.x as f32 * glyph.v.0 + self.cx + self.f;
         let y = -v.y as f32 * glyph.v.1 + self.cy + ay;
 
         use tt::VertexType;
@@ -376,7 +424,7 @@ impl<'a> Iterator for PathIterator<'a> {
         match v.vertex_type() {
             VertexType::LineTo => unsafe { OP = PathOp::Line(x, y) },
             VertexType::CurveTo => {
-                let cx = v.cx as f32 * glyph.v.0 + self.cx;
+                let cx = v.cx as f32 * glyph.v.0 + self.cx + self.f;
                 let cy = -v.cy as f32 * glyph.v.1 + self.cy + ay;
 
                 unsafe { OP = PathOp::Quad(cx, cy, x, y) };
@@ -391,7 +439,7 @@ impl<'a> Iterator for PathIterator<'a> {
 }
 
 /// An iterator over glyphs in a string.
-pub struct GlyphIterator<'a> {
+struct GlyphIterator<'a> {
     // The font
     font: &'a Font<'a>,
     // Scaling info
@@ -454,14 +502,9 @@ impl<'a> Font<'a> {
         (vm.ascent as f32) * scale
     }
 
-    /// Returns the units per EM square of this font
-    pub fn units_per_em(&self) -> u16 {
-        self.info.units_per_em()
-    }
-
     /// The number of glyphs present in this font. Glyph identifiers for this
     /// font will always be in the range `0..self.glyph_count()`
-    pub fn glyph_count(&self) -> usize {
+    fn glyph_count(&self) -> usize {
         self.info.get_num_glyphs() as usize
     }
 
@@ -497,7 +540,7 @@ impl<'a> Font<'a> {
         factor * kern as f32
     }
     /// Get an iterator over the glyphs in a string.
-    pub fn glyphs<T: ToString>(&'a self, text: T, scale: (f32, f32)) -> GlyphIterator<'a> {
+    fn glyphs<T: ToString>(&'a self, text: T, scale: (f32, f32)) -> GlyphIterator<'a> {
         let (scale_x, scale_y) = {
             let scale_y = self.info.scale_for_pixel_height(scale.1);
             let scale_x = scale_y * scale.0 / scale.1;
@@ -537,39 +580,6 @@ impl<'a> Glyph<'a> {
     /// The glyph identifier for this glyph.
     fn id(&self) -> GlyphId {
         GlyphId(self.inner.1)
-    }
-
-    /// Convert the glyph to an iterator over `PathOp`s
-    pub fn draw(&self, point_x: f32, mut point_y: f32) -> Path2D {
-        let mut path = PathBuilder::new().absolute();
-
-        point_y += self.font().v_metrics(self.v);
-
-        let shape = {
-            let (font, id) = (self.font(), self.id());
-
-            font.info.get_glyph_shape(id.0).unwrap_or_else(Vec::new)
-        };
-
-        for v in shape {
-            let x = v.x as f32 * self.v.0 + point_x;
-            let y = -v.y as f32 * self.v.1 + point_y;
-
-            use tt::VertexType;
-
-            match v.vertex_type() {
-                VertexType::LineTo => path = path.line_to(x, y),
-                VertexType::CurveTo => {
-                    let cx = v.cx as f32 * self.v.0 + point_x;
-                    let cy = -v.cy as f32 * self.v.1 + point_y;
-
-                    path = path.quad_to(cx, cy, x, y);
-                }
-                VertexType::MoveTo => path = path.move_to(x, y),
-            }
-        }
-
-        path.build()
     }
 }
 

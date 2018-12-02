@@ -16,10 +16,10 @@ fn main() {
     let font = Font::new(FONT).expect("Failed to load font!");
 
     // Init rendering
-    let mut p = Plotter::new(1024, 1024);
+    let mut p = Plotter::new(2048, 2048);
     let mut r = Raster::new(p.width(), p.height());
 
-    let path = font.render("ÁÅ EEE\nÁåEee", (0.0, 0.0), (FONT_SIZE, FONT_SIZE)); // path.build();
+    let path = font.render("Hé\tllö,\nWørłd!\nW. And Me?\nHow go it‽\n||| 10 A.D.I.", (0.0, 0.0), (FONT_SIZE, FONT_SIZE)).vertical(); // path.build();
     r.over(p.fill(path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
     r.write_png("raster.png").unwrap();
 }
