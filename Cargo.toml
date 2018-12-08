@@ -21,7 +21,7 @@ authors = [
 
 license = "MIT / BSL-1.0"
 documentation = "https://docs.rs/fonterator"
-homepage = "https://gitlab.com/plopgrizzly/barg/fonterator"
+homepage = "https://free.plopgrizzly.com/fonterator"
 repository = "https://github.com/plopgrizzly/fonterator"
 
 readme = "README.md"
