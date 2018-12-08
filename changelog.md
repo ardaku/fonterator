@@ -1,3 +1,6 @@
+## 0.2.1
+* Fix README.
+
 ## 0.2
 * Depend on Footile for `PathOp`s rather than afi.
 * Added vertical text layout support.
