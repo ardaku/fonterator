@@ -16,7 +16,7 @@
 //! ```
 //!
 //! In main.rs,
-//! ```
+//! ```rust
 //! extern crate fonterator;
 //! extern crate footile;
 //! 
