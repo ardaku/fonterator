@@ -72,8 +72,8 @@ pub struct FontChain<'a> {
 #[cfg(feature = "builtin-font")]
 impl<'a> Default for FontChain<'a> {
     fn default() -> Self {
-        const FONTA: &[u8] = include_bytes!("../font/dejavu/DejaVuSansMono.ttf");
-        const FONTB: &[u8] = include_bytes!("../font/wqy-microhei/WenQuanYiMicroHeiMono.ttf");
+        const FONTA: &[u8] = include_bytes!("font/dejavu/DejaVuSansMono.ttf");
+        const FONTB: &[u8] = include_bytes!("font/wqy-microhei/WenQuanYiMicroHeiMono.ttf");
 
         FontChain::new()
             .add(FONTA)
