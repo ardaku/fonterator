@@ -23,7 +23,7 @@
 //! use fonterator::Font;
 //! use footile::{FillRule, Plotter, Raster, Rgba8};
 //! 
-//! const FONT: &[u8] = include_bytes!("../font/LiberationSans-Regular.ttf");
+//! const FONT: &[u8] = include_bytes!("LiberationSans-Regular.ttf");
 //! 
 //! fn main() {
 //!     // This only succeeds if collection consists of one font
@@ -50,6 +50,7 @@
 extern crate byteorder;
 extern crate footile;
 extern crate unicode_normalization;
+extern crate unicode_width;
 
 mod tt;
 
@@ -64,14 +65,92 @@ use std::sync::Arc;
 #[derive(Copy, Clone)]
 struct Vec2(pub f32, pub f32);
 
+/// A FontChain is a collection of fonts that together should cover all of the unicode codepoints.
+pub struct FontChain<'a> {
+    fonts: Vec<Font<'a>>,
+    mono: Option<f32>,
+}
+
+#[cfg(feature = "builtin-font")]
+impl<'a> Default for FontChain<'a> {
+    fn default() -> Self {
+        const FONTA: &[u8] = include_bytes!("../font/dejavu/DejaVuSansMono.ttf");
+        const FONTB: &[u8] = include_bytes!("../font/wqy-microhei/WenQuanYiMicroHeiMono.ttf");
+
+        FontChain::new()
+            .add(FONTA).unwrap()
+            .add(FONTB).unwrap()
+            .multilingual_mono(1)
+    }
+}
+
+impl<'a> FontChain<'a> {
+    /// Create a new FontChain
+    pub fn new() -> Self {
+        FontChain {
+            fonts: vec![],
+            mono: None,
+        }
+    }
+
+    /// Add a FontCollection to the FontChain
+    pub fn add<B: Into<SharedBytes<'a>>>(mut self, bytes: B) -> Result<Self, Error> {
+        let collection = FontCollection::new(bytes)?;
+
+        if tt::get_font_offset_for_index(&collection.0, 1).is_some() {
+            // multiple fonts
+            let mut fonts = collection.into_fonts();
+            self.fonts.append(&mut fonts);
+        } else {
+            // one font
+            let font = collection.into_font()?;
+            self.fonts.push(font);
+        }
+
+        Ok(self)
+    }
+
+    /// Get an iterator over the glyphs in a string.
+    fn glyphs<T: ToString>(&'a self, text: T, scale: (f32, f32), mono: Option<f32>) -> GlyphIterator<'a> {
+        let (scale_x, scale_y) = {
+            let scale_y = self.fonts[0].info.scale_for_pixel_height(scale.1);
+            let scale_x = scale_y * scale.0 / scale.1;
+            (scale_x, scale_y)
+        };
+
+        GlyphIterator {
+            font: &self.fonts,
+            api_scale: scale,
+            scale: Vec2(scale_x, scale_y),
+            string: text.to_string().nfc().collect::<Vec<char>>(),
+            cursor: 0,
+            last: None,
+            mono,
+        }
+    }
+
+    /// Render a string.
+    pub fn render<T: ToString>(&self, text: T, xy: (f32, f32), wh: (f32, f32)) -> PathIterator {
+        PathIterator::new(self.glyphs(text, wh, self.mono), xy)
+    }
+
+    /// Multi-Lingual Monospace (2 Latin Letters per CJK Character).
+    pub fn multilingual_mono(mut self, index: usize) -> Self {
+        let glyphb = self.fonts[index].glyph('野', Vec2(1.0, 1.0), None).0;
+        let glyphb = self.fonts[index].info.get_glyph_h_metrics(glyphb.id().0).advance_width as f32;
+        self.mono = Some(glyphb);
+        self
+    }
+}
+
 /// A collection of fonts read straight from a font file's data. The data in the
 /// collection is not validated. This structure may or may not own the font
 /// data.
 #[derive(Clone, Debug)]
-pub struct FontCollection<'a>(SharedBytes<'a>);
+struct FontCollection<'a>(SharedBytes<'a>);
 /// A single font. This may or may not own the font data.
 #[derive(Clone)]
-pub struct Font<'a> {
+struct Font<'a> {
     info: tt::FontInfo<SharedBytes<'a>>,
 }
 
@@ -179,7 +258,7 @@ impl From<tt::VMetrics> for VMetrics {
 trait IntoGlyphId {
     /// Convert `self` into a `GlyphId`, consulting the index map of `font` if
     /// necessary.
-    fn into_glyph_id(self, &Font) -> GlyphId;
+    fn into_glyph_id(self, a: &Font) -> GlyphId;
 }
 impl IntoGlyphId for char {
     fn into_glyph_id(self, font: &Font) -> GlyphId {
@@ -250,6 +329,7 @@ impl<'a> FontCollection<'a> {
     /// valid. The produced font borrows the font data that is either borrowed
     /// or owned by this font collection.
     pub fn font_at(&self, i: usize) -> Result<Font<'a>, Error> {
+        println!("II {}", i);
         let offset = tt::get_font_offset_for_index(&self.0, i as i32)
             .ok_or(Error::CollectionIndexOutOfBounds)?;
         let info = tt::FontInfo::new(self.0.clone(), offset as usize).ok_or(Error::IllFormed)?;
@@ -381,7 +461,15 @@ impl<'a> Iterator for PathIterator<'a> {
                 // Horizontal text
                 self.cx += if self.rl { -self.advance } else { self.advance };
             }
-            self.advance = advance;
+            self.advance = if self.glyph_iter.mono.is_some() {
+                if unicode_width::UnicodeWidthChar::width(self.ch) == Some(2) {
+                    glyph.font().v_metrics(glyph.v)
+                } else {
+                    glyph.font().v_metrics(glyph.v) / 2.0
+                }
+            } else {
+                advance
+            };
             self.glyph = Some(glyph);
         }
 
@@ -409,7 +497,7 @@ impl<'a> Iterator for PathIterator<'a> {
         };
         let y = -v.y as f32 * glyph.v.1 + self.cy + ay;
 
-        use tt::VertexType;
+        use crate::tt::VertexType;
 
         match v.vertex_type() {
             VertexType::LineTo => unsafe { OP = PathOp::Line(x, y) },
@@ -435,7 +523,7 @@ impl<'a> Iterator for PathIterator<'a> {
 /// An iterator over glyphs in a string.
 struct GlyphIterator<'a> {
     // The font
-    font: &'a Font<'a>,
+    font: &'a Vec<Font<'a>>,
     // Scaling info
     api_scale: (f32, f32),
     // ...
@@ -445,7 +533,9 @@ struct GlyphIterator<'a> {
     // Which character in the string
     cursor: usize,
     // The previous glyph
-    last: Option<Glyph<'a>>,
+    last: Option<(Glyph<'a>, &'a Font<'a>)>,
+    // 
+    mono: Option<f32>,
 }
 
 impl<'a> Iterator for GlyphIterator<'a> {
@@ -454,17 +544,30 @@ impl<'a> Iterator for GlyphIterator<'a> {
     fn next(&mut self) -> Option<(Glyph<'a>, f32)> {
         let c = self.string.get(self.cursor);
 
+        println!("C {:?}", c);
+
         if let Some(c) = c {
-            let glyph: Glyph<'a> = self.font.glyph(*c, self.scale);
+            let mut i = 0;
+            let glyph: Glyph<'a> = loop {
+                let mono = if self.mono.is_some() && unicode_width::UnicodeWidthChar::width(*c) == Some(1) { self.mono } else { None };
+                let (glyph, hit): (Glyph<'a>, bool) = self.font[i].glyph(*c, self.scale, mono);
+                if hit || i == self.font.len() - 1 {
+                    break glyph;
+                }
+                i += 1;
+            };
+
             let mut advance = self
-                .font
+                .font[i]
                 .info
                 .get_glyph_h_metrics(glyph.id().0)
                 .advance_width as f32
                 * self.scale.0;
 
+//            println!("KERNING ADVNACE {} {}!", advance, self.font[i].v_metrics(self.scale));
+
             if self.cursor != 0 {
-                advance += self.font.kerning(
+                advance += self.font[i].kerning(
                     self.api_scale,
                     self.scale,
                     self.last.as_ref().unwrap(),
@@ -472,7 +575,7 @@ impl<'a> Iterator for GlyphIterator<'a> {
                 );
             }
 
-            self.last = Some(glyph.clone());
+            self.last = Some((glyph.clone(), &self.font[i]));
             self.cursor += 1;
             Some((glyph, advance))
         } else {
@@ -482,12 +585,6 @@ impl<'a> Iterator for GlyphIterator<'a> {
 }
 
 impl<'a> Font<'a> {
-    /// Constructs a font from an array of bytes, this is a shortcut for
-    /// `FontCollection::new` for collections comprised of a single font.
-    pub fn new<B: Into<SharedBytes<'a>>>(bytes: B) -> Result<Font<'a>, Error> {
-        FontCollection::new(bytes).and_then(|c| c.into_font())
-    }
-
     /// The "vertical metrics" for this font at a given scale. These metrics are
     /// shared by all of the glyphs in the font. See `VMetrics` for more detail.
     fn v_metrics(&self, scale: Vec2) -> f32 {
@@ -512,53 +609,40 @@ impl<'a> Font<'a> {
     ///
     /// Note that code points without corresponding glyphs in this font map to
     /// the ".notdef" glyph, glyph 0.
-    fn glyph<C: IntoGlyphId>(&self, id: C, v: Vec2) -> Glyph<'a> {
+    fn glyph<C: IntoGlyphId>(&self, id: C, mut v: Vec2, mono: Option<f32>) -> (Glyph<'a>, bool) {
         let gid = id.into_glyph_id(self);
+
+        if let Some(glyphb) = mono {
+            let glypha = self.glyph('a', v, None).0;
+            let glypha = self.info.get_glyph_h_metrics(glypha.id().0).advance_width as f32;
+
+            v.0 *= 0.5 * glyphb / glypha;
+        }
+
+        println!("GID {}", gid.0);
+
         assert!((gid.0 as usize) < self.glyph_count());
         // font clone either a reference clone, or arc clone
-        Glyph::new(GlyphInner(self.clone(), gid.0), v)
+        (Glyph::new(GlyphInner(self.clone(), gid.0), v), gid.0 != 0)
     }
 
     /// Returns additional kerning to apply as well as that given by HMetrics
     /// for a particular pair of glyphs.
-    fn pair_kerning<A, B>(&self, scale: (f32, f32), v: Vec2, first: A, second: B) -> f32
+    fn pair_kerning<A, B>(&self, scale: (f32, f32), v: Vec2, first: A, second: B, old: &'a Font<'a>) -> f32
     where
         A: IntoGlyphId,
         B: IntoGlyphId,
     {
-        let (first, second) = (self.glyph(first, v), self.glyph(second, v));
+        let (first, second) = (old.glyph(first, v, None).0, self.glyph(second, v, None).0);
         let factor = self.info.scale_for_pixel_height(scale.1) * (scale.0 / scale.1);
         let kern = self
             .info
             .get_glyph_kern_advance(first.id().0, second.id().0);
         factor * kern as f32
     }
-    /// Get an iterator over the glyphs in a string.
-    fn glyphs<T: ToString>(&'a self, text: T, scale: (f32, f32)) -> GlyphIterator<'a> {
-        let (scale_x, scale_y) = {
-            let scale_y = self.info.scale_for_pixel_height(scale.1);
-            let scale_x = scale_y * scale.0 / scale.1;
-            (scale_x, scale_y)
-        };
-
-        GlyphIterator {
-            font: &self,
-            api_scale: scale,
-            scale: Vec2(scale_x, scale_y),
-            string: text.to_string().nfc().collect::<Vec<char>>(),
-            cursor: 0,
-            last: None,
-        }
-    }
-
-    /// Render a string.
-    pub fn render<T: ToString>(&self, text: T, xy: (f32, f32), wh: (f32, f32)) -> PathIterator {
-        PathIterator::new(self.glyphs(text, wh), xy)
-    }
-
     /// Get the proper spacing from the start of one character to the next.
-    fn kerning(&self, scale: (f32, f32), v: Vec2, first: &Glyph<'a>, second: &Glyph<'a>) -> f32 {
-        self.pair_kerning(scale, v, first.id(), second.id())
+    fn kerning(&self, scale: (f32, f32), v: Vec2, first: &(Glyph<'a>, &'a Font<'a>), second: &Glyph<'a>) -> f32 {
+        self.pair_kerning(scale, v, first.0.id(), second.id(), first.1)
     }
 }
 impl<'a> Glyph<'a> {

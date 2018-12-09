@@ -1,14 +1,12 @@
 extern crate fonterator;
 extern crate footile;
 
-use fonterator::Font;
+use fonterator::FontChain;
 use footile::{FillRule, Plotter, Raster, Rgba8};
-
-const FONT: &[u8] = include_bytes!("../font/LiberationSans-Regular.ttf");
 
 fn main() {
     // This only succeeds if collection consists of one font
-    let font = Font::new(FONT).expect("Failed to load font!");
+    let font = FontChain::default();
 
     // Init rendering
     let mut p = Plotter::new(2048, 2048);
@@ -16,7 +14,7 @@ fn main() {
 
     // Render the text
     let path = font.render(
-        "Héllö,\nWørłd!", /*text*/
+        "Héllö,\nWørłd!‽i\n野ウサギ\nWW野WWウ\nサWWギWW", /*text*/
         (0.0, 0.0),       /*position*/
         (256.0, 256.0),   /*size*/
     );

@@ -76,7 +76,7 @@ pub(crate) enum PlatformId {
 }
 
 fn platform_id(v: u16) -> Option<PlatformId> {
-    use tt::PlatformId::*;
+    use crate::tt::PlatformId::*;
     match v {
         0 => Some(Unicode),
         1 => Some(Mac),
@@ -96,7 +96,7 @@ pub(crate) enum MicrosoftEid {
 }
 
 fn microsoft_eid(v: u16) -> Option<MicrosoftEid> {
-    use tt::MicrosoftEid::*;
+    use crate::tt::MicrosoftEid::*;
     match v {
         0 => Some(Symbol),
         1 => Some(UnicodeBMP),
@@ -376,7 +376,7 @@ impl<Data: Deref<Target = [u8]>> FontInfo<Data> {
     /// Like `get_codepoint_shape`, but takes a glyph index instead. Use this if you have cached the
     /// glyph index for a codepoint.
     pub(crate) fn get_glyph_shape(&self, glyph_index: u32) -> Option<Vec<Vertex>> {
-        use tt::VertexType::*;
+        use crate::tt::VertexType::*;
         fn close_shape(
             vertices: &mut [Vertex],
             num_vertices: &mut usize,
@@ -389,7 +389,7 @@ impl<Data: Deref<Target = [u8]>> FontInfo<Data> {
             cx: i32,
             cy: i32,
         ) {
-            use tt::VertexType::*;
+            use crate::tt::VertexType::*;
             if start_off {
                 if was_off {
                     vertices[*num_vertices] = Vertex {
