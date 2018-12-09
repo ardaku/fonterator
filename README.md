@@ -8,7 +8,7 @@ In Cargo.toml,
 
 ```toml
 [dependencies]
-fonterator = "0.2.0"
+fonterator = "0.3.0"
 ```
 
 In main.rs,
@@ -16,24 +16,22 @@ In main.rs,
 extern crate fonterator;
 extern crate footile;
 
-use fonterator::Font;
+use fonterator::FontChain;
 use footile::{FillRule, Plotter, Raster, Rgba8};
 
-const FONT: &[u8] = include_bytes!("../font/LiberationSans-Regular.ttf");
-
 fn main() {
-    // This only succeeds if collection consists of one font
-    let font = Font::new(FONT).expect("Failed to load font!");
+    // Load the default FontChain (font and fallbacks).
+    let font = FontChain::default();
 
     // Init rendering
     let mut p = Plotter::new(2048, 2048);
     let mut r = Raster::new(p.width(), p.height());
- 
+
     // Render the text
     let path = font.render(
-        "Héllö,\nWørłd!", /*text*/
-        (0.0, 0.0),       /*position*/
-        (256.0, 256.0),   /*size*/
+        "Héllö,\nWørłd!‽i", /*text*/
+        (0.0, 0.0),         /*position*/
+        (256.0, 256.0),     /*size*/
     );
     r.over(
         p.fill(path, FillRule::NonZero),
@@ -49,13 +47,13 @@ fn main() {
 * Automatic kerning and font layout.
 * Horizontal and vertical text layout.
 * Left-to-right and right-to-left text layout.
+* Use fallback fonts if a character is not available from one font.
+* Optional multilingual monospace (CJK is rendered exactly twice the width of Latin).
 
 ## TODO
-* Support OpenType formatted fonts that are not just TrueType fonts (OpenType is
-a superset of TrueType). Notably there is no support yet for cubic Bezier curves
-used in glyphs.
-* Support ligatures of any kind (‽, etc.).
-* Support some less common TrueType sub-formats.
+* Support OpenType fonts that aren't TrueType (Supporting cubic bezier curves).
+* Support ligatures (‽,æ etc.).
+* Support other TrueType variants.
 
 ## Links
 * [Website](https://free.plopgrizzly.com/fonterator)

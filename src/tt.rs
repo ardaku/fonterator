@@ -307,17 +307,17 @@ impl<Data: Deref<Target = [u8]>> FontInfo<Data> {
                     let offset =
                         BE::read_u16(&index_map[14 + segcount * 6 + 2 + 2 * item..]) as usize;
                     if offset == 0 {
-                        return (unicode_codepoint as i32 + BE::read_i16(
-                            &index_map[14 + segcount * 4 + 2 + 2 * item..],
-                        ) as i32) as u16 as u32;
+                        return (unicode_codepoint as i32
+                            + BE::read_i16(&index_map[14 + segcount * 4 + 2 + 2 * item..]) as i32)
+                            as u16 as u32;
                     }
                     return BE::read_u16(
                         &index_map[offset
-                                       + (unicode_codepoint - start) as usize * 2
-                                       + 14
-                                       + segcount * 6
-                                       + 2
-                                       + 2 * item..],
+                            + (unicode_codepoint - start) as usize * 2
+                            + 14
+                            + segcount * 6
+                            + 2
+                            + 2 * item..],
                     ) as u32;
                 }
             }
@@ -754,9 +754,8 @@ impl<Data: Deref<Target = [u8]>> FontInfo<Data> {
                 ) as i32,
                 left_side_bearing: BE::read_i16(
                     &self.data[self.hmtx as usize
-                                   + 4 * num_of_long_hor_metrics
-                                   + 2 * (glyph_index as isize - num_of_long_hor_metrics as isize)
-                                       as usize..],
+                        + 4 * num_of_long_hor_metrics
+                        + 2 * (glyph_index as isize - num_of_long_hor_metrics as isize) as usize..],
                 ) as i32,
             }
         }
