@@ -1,4 +1,4 @@
-// Copyright Jeron Lau 2018.
+// Copyright Jeron Lau 2018-2019.
 // Copyright Dylan Ede 2016.
 // Dual-licensed under either the MIT License or the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
@@ -32,7 +32,7 @@
 //!     let mut r = Raster::new(p.width(), p.height());
 //!
 //!     // Render the text
-//!     let path = font.render(
+//!     let (path, _, _) = font.render(
 //!         "Héllö,\nWørłd!‽i", /*text*/
 //!         (0.0, 0.0),         /*position*/
 //!         (256.0, 256.0),     /*size*/
@@ -412,9 +412,14 @@ impl<'a> PathIterator<'a> {
         self.rl = true;
         self
     }
+
+    /// Consume the iterator and get the current x and y positions.
+    pub fn xy(self) -> (f32, f32) {
+        (self.cx, self.cy)
+    }
 }
 
-impl<'a> Iterator for PathIterator<'a> {
+impl<'a> Iterator for &mut PathIterator<'a> {
     type Item = &'static PathOp;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -425,8 +430,24 @@ impl<'a> Iterator for PathIterator<'a> {
 
         // If no glyph, then get next.
         if self.glyph.is_none() {
-            self.ch = *self.glyph_iter.string.get(self.glyph_iter.cursor)?;
-            let (glyph, advance) = self.glyph_iter.next()?;
+            let (glyph, advance) = if let Some(ch) = self.glyph_iter.string.get(self.glyph_iter.cursor)
+            {
+                self.ch = *ch;
+                self.glyph_iter.next().unwrap() // was ?
+            } else {
+                // IF-ELSE for ADVANCE TODO: IS COPY-ISH
+                if self.vt {
+                    // Vertical text
+                    self.f += self.advance;
+                    self.cy += 0.0; // TODO glyph.font().v_metrics(glyph.v);
+                } else {
+                    // Horizontal text
+                    self.cx += if self.rl { -self.advance } else { self.advance };
+                }
+                // END IF-ELSE for ADVANCE
+                return None;
+            };
+
             if self.ch == '\n' {
                 self.advance = 0.0;
                 if self.vt {
@@ -456,6 +477,7 @@ impl<'a> Iterator for PathIterator<'a> {
                 return Self::next(self);
             }
             self.oc = 0;
+            // IF-ELSE for ADVANCE TODO: HAS COPY
             if self.vt {
                 // Vertical text
                 self.f += self.advance;
@@ -471,6 +493,7 @@ impl<'a> Iterator for PathIterator<'a> {
                 // Horizontal text
                 self.cx += if self.rl { -self.advance } else { self.advance };
             }
+            // END IF-ELSE for ADVANCE
             self.advance = if self.glyph_iter.mono.is_some() {
                 if unicode_width::UnicodeWidthChar::width(self.ch) == Some(2) {
                     glyph.font().v_metrics(glyph.v)
