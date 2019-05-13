@@ -8,33 +8,30 @@ In Cargo.toml,
 
 ```toml
 [dependencies]
-fonterator = "0.3.0"
+fonterator = "0.4.0"
 ```
 
 In main.rs,
 ```rust
-extern crate fonterator;
-extern crate footile;
-
-use fonterator::FontChain;
+use fonterator::FontGroup;
 use footile::{FillRule, Plotter, Raster, Rgba8};
 
 fn main() {
-    // Load the default FontChain (font and fallbacks).
-    let font = FontChain::default();
+    // Load the default FontGroup (font and fallbacks).
+    let font = FontGroup::default();
 
     // Init rendering
     let mut p = Plotter::new(2048, 2048);
     let mut r = Raster::new(p.width(), p.height());
 
     // Render the text
-    let path = font.render(
+    let mut path = font.render(
         "Héllö,\nWørłd!‽i", /*text*/
         (0.0, 0.0),         /*position*/
         (256.0, 256.0),     /*size*/
     );
     r.over(
-        p.fill(path, FillRule::NonZero),
+        p.fill(&mut path, FillRule::NonZero),
         Rgba8::rgb(0, 0, 0), /*color*/
     );
     r.write_png("main.png").unwrap(); /*save as PNG*/
@@ -56,12 +53,12 @@ fn main() {
 * Support other TrueType variants.
 
 ## Links
-* [Website](https://free.plopgrizzly.com/fonterator)
+* [Website](https://open.plopgrizzly.com/fonterator)
 * [Cargo](https://crates.io/crates/fonterator)
 * [Documentation](https://docs.rs/fonterator)
-* [Change Log](https://free.plopgrizzly.com/fonterator/changelog)
-* [Contributing](https://plopgrizzly.com/contributing)
-* [Code of Conduct](https://free.plopgrizzly.com/fonterator/codeofconduct)
+* [Change Log](https://open.plopgrizzly.com/fonterator/CHANGELOG)
+* [Contributors](https://open.plopgrizzly.com/fonterator/CONTRIBUTORS)
+* [Code of Conduct](https://open.plopgrizzly.com/fonterator/CODEOFCONDUCT)
 
 ---
 

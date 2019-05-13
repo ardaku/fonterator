@@ -12,7 +12,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! fonterator = "0.3.0"
+//! fonterator = "0.4.0"
 //! ```
 //!
 //! In main.rs,
@@ -42,10 +42,7 @@
 //! }
 //! ```
 
-extern crate byteorder;
-extern crate footile;
-extern crate unicode_normalization;
-extern crate unicode_width;
+pub use footile;
 
 mod tt;
 
