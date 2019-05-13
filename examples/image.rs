@@ -16,30 +16,30 @@ fn main() {
     // Loop through the glyphs in the text, adding to the SVG.
     let mut path = font.render(
         "DIVE and…    ‽é¿?üæ", /*text*/
-        (0.0, 0.0),                                                     /*position*/
-        (FONT_SIZE, FONT_SIZE),                                                 /*size*/
+        (0.0, 0.0),                    /*position*/
+        (FONT_SIZE, FONT_SIZE),        /*size*/
     );
     data = Data::new();
 
     for i in &mut path {
-            match i {
-                PathOp::Move(x, y) => {
-                    data = data.move_to((*x, *y));
-                }
-                PathOp::Line(x, y) => {
-                    data = data.line_to((*x, *y));
-                }
-                PathOp::Quad(cx, cy, x, y) => {
-                    data = data.quadratic_curve_to((*cx, *cy, *x, *y));
-                }
-                PathOp::Cubic(ax, ay, bx, by, x, y) => {
-                    data = data.cubic_curve_to((*ax, *ay, *bx, *by, *x, *y));
-                }
-                PathOp::Close() => {
-                    data = data.close();
-                }
-                PathOp::PenWidth(_) => {}
+        match i {
+            PathOp::Move(x, y) => {
+                data = data.move_to((*x, *y));
             }
+            PathOp::Line(x, y) => {
+                data = data.line_to((*x, *y));
+            }
+            PathOp::Quad(cx, cy, x, y) => {
+                data = data.quadratic_curve_to((*cx, *cy, *x, *y));
+            }
+            PathOp::Cubic(ax, ay, bx, by, x, y) => {
+                data = data.cubic_curve_to((*ax, *ay, *bx, *by, *x, *y));
+            }
+            PathOp::Close() => {
+                data = data.close();
+            }
+            PathOp::PenWidth(_) => {}
+        }
     }
 
     group.append(Path::new().set("d", data.clone()));

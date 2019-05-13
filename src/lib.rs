@@ -424,23 +424,23 @@ impl<'a> Iterator for &mut PathIterator<'a> {
 
         // If no glyph, then get next.
         if self.glyph.is_none() {
-            let (glyph, advance) = if let Some(ch) = self.glyph_iter.string.get(self.glyph_iter.cursor)
-            {
-                self.ch = *ch;
-                self.glyph_iter.next().unwrap() // was ?
-            } else {
-                // IF-ELSE for ADVANCE TODO: IS COPY-ISH
-                if self.vt {
-                    // Vertical text
-                    self.f += self.advance;
-                    self.cy += 0.0; // TODO glyph.font().v_metrics(glyph.v);
+            let (glyph, advance) =
+                if let Some(ch) = self.glyph_iter.string.get(self.glyph_iter.cursor) {
+                    self.ch = *ch;
+                    self.glyph_iter.next().unwrap() // was ?
                 } else {
-                    // Horizontal text
-                    self.cx += if self.rl { -self.advance } else { self.advance };
-                }
-                // END IF-ELSE for ADVANCE
-                return None;
-            };
+                    // IF-ELSE for ADVANCE TODO: IS COPY-ISH
+                    if self.vt {
+                        // Vertical text
+                        self.f += self.advance;
+                        self.cy += 0.0; // TODO glyph.font().v_metrics(glyph.v);
+                    } else {
+                        // Horizontal text
+                        self.cx += if self.rl { -self.advance } else { self.advance };
+                    }
+                    // END IF-ELSE for ADVANCE
+                    return None;
+                };
 
             if self.ch == '\n' {
                 self.advance = 0.0;
