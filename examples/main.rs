@@ -1,9 +1,9 @@
-use fonterator::FontChain;
+use fonterator::FontGroup;
 use footile::{FillRule, Plotter, Raster, Rgba8};
 
 fn main() {
-    // Load the default FontChain (font and fallbacks).
-    let font = FontChain::default();
+    // Load the default FontGroup (font and fallbacks).
+    let font = FontGroup::default();
 
     // Init rendering
     let mut p = Plotter::new(2048, 2048);

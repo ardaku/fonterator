@@ -1,4 +1,4 @@
-use fonterator::{FontChain, PathOp};
+use fonterator::{FontGroup, PathOp};
 use svg::{
     node::element::{path::Data, Group, Path, Style},
     Document, Node,
@@ -7,8 +7,7 @@ use svg::{
 const FONT_SIZE: f32 = 256.0;
 
 fn main() {
-    // This only succeeds if collection consists of one font
-    let font = FontChain::default();
+    let font = FontGroup::default();
 
     // Initialize variables need to write to SVG
     let mut group = Group::new();

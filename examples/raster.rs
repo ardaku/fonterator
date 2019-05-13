@@ -1,4 +1,4 @@
-use fonterator::FontChain;
+use fonterator::FontGroup;
 use footile::{FillRule, Plotter, Raster, Rgba8};
 
 const FONT_SIZE: f32 = 200.0;
@@ -6,8 +6,7 @@ const FONT_SIZE: f32 = 200.0;
 const STR: &'static str = "Hé\tllö,\nWørłd!\nW. And Me?\nHow go it‽\n||| 10 X.Y.Z.";
 
 fn main() {
-    // This only succeeds if collection consists of one font
-    let font = FontChain::default();
+    let font = FontGroup::default();
 
     // Init rendering
     let mut p = Plotter::new(2048, 2048);

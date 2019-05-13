@@ -17,12 +17,12 @@
 //!
 //! In main.rs,
 //! ```rust
-//! use fonterator::FontChain;
+//! use fonterator::FontGroup;
 //! use footile::{FillRule, Plotter, Raster, Rgba8};
 //!
 //! fn main() {
-//!     // Load the default FontChain (font and fallbacks).
-//!     let font = FontChain::default();
+//!     // Load the default FontGroup (font and fallbacks).
+//!     let font = FontGroup::default();
 //!
 //!     // Init rendering
 //!     let mut p = Plotter::new(2048, 2048);
@@ -60,19 +60,19 @@ use std::sync::Arc;
 #[derive(Copy, Clone)]
 struct Vec2(pub f32, pub f32);
 
-/// A FontChain is a collection of fonts that together should cover all of the unicode codepoints.
-pub struct FontChain<'a> {
+/// A `FontGroup` is a collection of fonts that together should cover all of the unicode codepoints.
+pub struct FontGroup<'a> {
     fonts: Vec<Font<'a>>,
     mono: Option<f32>,
 }
 
 #[cfg(feature = "builtin-font")]
-impl<'a> Default for FontChain<'a> {
+impl<'a> Default for FontGroup<'a> {
     fn default() -> Self {
         const FONTA: &[u8] = include_bytes!("font/dejavu/DejaVuSansMono.ttf");
         const FONTB: &[u8] = include_bytes!("font/wqy-microhei/WenQuanYiMicroHeiMono.ttf");
 
-        FontChain::new()
+        FontGroup::new()
             .add(FONTA)
             .unwrap()
             .add(FONTB)
@@ -81,16 +81,16 @@ impl<'a> Default for FontChain<'a> {
     }
 }
 
-impl<'a> FontChain<'a> {
-    /// Create a new FontChain
+impl<'a> FontGroup<'a> {
+    /// Create a new FontGroup
     pub fn new() -> Self {
-        FontChain {
+        FontGroup {
             fonts: vec![],
             mono: None,
         }
     }
 
-    /// Add a Font or FontCollection to the FontChain
+    /// Add a Font or FontCollection to the FontGroup
     pub fn add<B: Into<SharedBytes<'a>>>(mut self, bytes: B) -> Result<Self, Error> {
         let collection = FontCollection::new(bytes)?;
 
@@ -362,7 +362,7 @@ impl<'a> FontCollection<'a> {
     }
 }
 
-/// An iterator created by `FontChain::render()` for `PathOp`s.
+/// An iterator created by `FontGroup.render()` for `PathOp`s.
 pub struct PathIterator<'a> {
     glyph_iter: GlyphIterator<'a>,
     glyph: Option<Glyph<'a>>,
