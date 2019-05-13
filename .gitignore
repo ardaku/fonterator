@@ -1,6 +1,7 @@
-main.png
-image_example.png
-image_example.svg
+**/*.png
+**/*.svg
+*.png
+*.svg
 /target
 **/*.rs.bk
 Cargo.lock

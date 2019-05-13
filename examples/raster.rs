@@ -1,17 +1,13 @@
-extern crate fonterator;
-extern crate footile;
-
-use fonterator::Font;
+use fonterator::FontChain;
 use footile::{FillRule, Plotter, Raster, Rgba8};
 
-const FONT: &[u8] = include_bytes!("../font/LiberationSans-Regular.ttf");
 const FONT_SIZE: f32 = 200.0;
 
-const STR: &'static str = "Hé\tllö,\nWørłd!\nW. And Me?\nHow go it‽\n||| 10 A.D.I.";
+const STR: &'static str = "Hé\tllö,\nWørłd!\nW. And Me?\nHow go it‽\n||| 10 X.Y.Z.";
 
 fn main() {
     // This only succeeds if collection consists of one font
-    let font = Font::new(FONT).expect("Failed to load font!");
+    let font = FontChain::default();
 
     // Init rendering
     let mut p = Plotter::new(2048, 2048);
@@ -21,11 +17,11 @@ fn main() {
     //    r.over(p.fill(path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
     //    let path = font.render(STR, (1024.0, 0.0), (FONT_SIZE, FONT_SIZE)).vertical();
     //    r.over(p.fill(path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
-    let path = font.render(STR, (0.0, 0.0), (FONT_SIZE, FONT_SIZE));
-    r.over(p.fill(path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
-    let path = font
+    let mut path = font.render(STR, (0.0, 0.0), (FONT_SIZE, FONT_SIZE));
+    r.over(p.fill(&mut path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+    let mut path = font
         .render(STR, (2048.0, 1024.0), (FONT_SIZE, FONT_SIZE))
         .right_to_left();
-    r.over(p.fill(path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+    r.over(p.fill(&mut path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
     r.write_png("raster.png").unwrap();
 }
