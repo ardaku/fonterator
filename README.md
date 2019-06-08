@@ -53,13 +53,9 @@ fn main() {
 * Support other TrueType variants.
 
 ## Links
-* [Website](https://open.plopgrizzly.com/fonterator)
+* [Website](https://code.plopgrizzly.com/fonterator)
 * [Cargo](https://crates.io/crates/fonterator)
 * [Documentation](https://docs.rs/fonterator)
-* [Change Log](https://open.plopgrizzly.com/fonterator/CHANGELOG)
-* [Contributors](https://open.plopgrizzly.com/fonterator/CONTRIBUTORS)
-* [Code of Conduct](https://open.plopgrizzly.com/fonterator/CODEOFCONDUCT)
-
----
-
-[![Plop Grizzly](https://plopgrizzly.com/images/logo-bar.png)](https://plopgrizzly.com)
+* [Change Log](https://code.plopgrizzly.com/fonterator/CHANGELOG)
+* [Contributors](https://code.plopgrizzly.com/fonterator/CONTRIBUTORS)
+* [Code of Conduct](https://code.plopgrizzly.com/fonterator/CODEOFCONDUCT)
