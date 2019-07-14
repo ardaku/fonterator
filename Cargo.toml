@@ -5,15 +5,15 @@
 
 [package]
 name = "fonterator"
-version = "0.4.0"
+version = "0.4.1"
 authors = [
-	"Jeron Lau <jeron.lau@plopgrizzly.com>"
+	"Jeron Aldaron Lau <jeronlau@plopgrizzly.com>"
 ]
 edition = "2018"
 
 license = "MIT / BSL-1.0"
 documentation = "https://docs.rs/fonterator"
-homepage = "https://open.plopgrizzly.com/fonterator"
+homepage = "https://code.plopgrizzly.com/fonterator"
 repository = "https://github.com/plopgrizzly/fonterator"
 
 readme = "README.md"

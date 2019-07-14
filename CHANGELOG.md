@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://free.plopgrizzly.com/s
 ### Changed
 ### Fixed
 
+## [0.4.1] - 2019-07-14
+### Fixed
+- Multi-lingual monospace not spacing correctly.
+
 ## [0.4.0] - 2019-05-13
 ### Added
 - You can now use footile from fonterator with `use fonterator::footile;`

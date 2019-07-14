@@ -8,7 +8,7 @@ In Cargo.toml,
 
 ```toml
 [dependencies]
-fonterator = "0.4.0"
+fonterator = "0.4"
 ```
 
 In main.rs,
