@@ -28,28 +28,21 @@ pub(crate) struct Vertex {
     pub(crate) y: i16,
     pub(crate) cx: i16,
     pub(crate) cy: i16,
-    pub(crate) bx: i16,
-    pub(crate) by: i16,
-    vertex_type: VertexType,
+    type_: u8,
 }
 
 impl Vertex {
     pub(crate) fn vertex_type(&self) -> VertexType {
-        self.vertex_type
+        unsafe { ::std::mem::transmute(self.type_) }
     }
 }
 
 #[derive(Copy, Clone, Debug)]
 #[repr(u8)]
 pub(crate) enum VertexType {
-    /// Move pen
     MoveTo = 1,
-    /// Line Segment
     LineTo = 2,
-    /// Quadratic Curve
     CurveTo = 3,
-    /// Cubic Curve
-    CubicTo = 4,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -171,14 +164,14 @@ impl<Data: Deref<Target = [u8]>> FontInfo<Data> {
     /// the necessary cached info for the rest of the system.
     pub(crate) fn new(data: Data, fontstart: usize) -> Option<FontInfo<Data>> {
         let cmap = find_table(&data, fontstart, b"cmap"); // required
-        let loca = find_table(&data, fontstart, b"loca"); // not required
+        let loca = find_table(&data, fontstart, b"loca"); // required
         let head = find_table(&data, fontstart, b"head"); // required
-        let glyf = find_table(&data, fontstart, b"glyf"); // not required
+        let glyf = find_table(&data, fontstart, b"glyf"); // required
         let hhea = find_table(&data, fontstart, b"hhea"); // required
         let hmtx = find_table(&data, fontstart, b"hmtx"); // required
         let name = find_table(&data, fontstart, b"name"); // not required
         let kern = find_table(&data, fontstart, b"kern"); // not required
-        if cmap == 0 || head == 0 || hhea == 0 || hmtx == 0 {
+        if cmap == 0 || loca == 0 || head == 0 || glyf == 0 || hhea == 0 || hmtx == 0 {
             return None;
         }
         let t = find_table(&data, fontstart, b"maxp");
@@ -396,48 +389,41 @@ impl<Data: Deref<Target = [u8]>> FontInfo<Data> {
             cx: i32,
             cy: i32,
         ) {
+            use crate::tt::VertexType::*;
             if start_off {
                 if was_off {
                     vertices[*num_vertices] = Vertex {
-                        vertex_type: CurveTo,
+                        type_: CurveTo as u8,
                         x: ((cx + scx) >> 1) as i16,
                         y: ((cy + scy) >> 1) as i16,
                         cx: cx as i16,
                         cy: cy as i16,
-                        bx: 0i16,
-                        by: 0i16,
                     };
                     *num_vertices += 1;
                 }
                 vertices[*num_vertices] = Vertex {
-                    vertex_type: CurveTo,
+                    type_: CurveTo as u8,
                     x: sx as i16,
                     y: sy as i16,
                     cx: scx as i16,
                     cy: scy as i16,
-                    bx: 0i16,
-                    by: 0i16,
                 };
             } else {
                 vertices[*num_vertices] = if was_off {
                     Vertex {
-                        vertex_type: CurveTo,
+                        type_: CurveTo as u8,
                         x: sx as i16,
                         y: sy as i16,
                         cx: cx as i16,
                         cy: cy as i16,
-                        bx: 0i16,
-                        by: 0i16,
                     }
                 } else {
                     Vertex {
-                        vertex_type: LineTo,
+                        type_: LineTo as u8,
                         x: sx as i16,
                         y: sy as i16,
                         cx: 0,
                         cy: 0,
-                        bx: 0i16,
-                        by: 0i16,
                     }
                 };
             }
@@ -488,16 +474,16 @@ impl<Data: Deref<Target = [u8]>> FontInfo<Data> {
                 } else {
                     flagcount -= 1;
                 }
-                vertices[off + i].vertex_type = unsafe { std::mem::transmute(flags) };
+                vertices[off + i].type_ = flags;
             }
 
             // now load x coordinates
             let mut x = 0i32;
             for i in 0..n {
-                let flags = vertices[off + i].vertex_type as u8;
-//                if flags == 255 {
-//                    println!("{:?}", flags);
-//                }
+                let flags = vertices[off + i].type_;
+                if flags == 255 {
+                    println!("{:?}", flags);
+                }
                 if flags & 2 != 0 {
                     let dx = points[0] as i32;
                     points = &points[1..];
@@ -519,7 +505,7 @@ impl<Data: Deref<Target = [u8]>> FontInfo<Data> {
             // now load y coordinates
             let mut y = 0i32;
             for i in 0..n {
-                let flags = vertices[off + i].vertex_type as u8;
+                let flags = vertices[off + i].type_;
                 if flags & 4 != 0 {
                     let dy = points[0] as i32;
                     points = &points[1..];
@@ -548,7 +534,7 @@ impl<Data: Deref<Target = [u8]>> FontInfo<Data> {
             let mut i = 0;
             let mut j = 0;
             while i < n {
-                let flags = vertices[off + i].vertex_type as u8;
+                let flags = vertices[off + i].type_;
                 x = vertices[off + i].x as i32;
                 y = vertices[off + i].y as i32;
 
@@ -575,7 +561,7 @@ impl<Data: Deref<Target = [u8]>> FontInfo<Data> {
                         // where we can start, and we need to save some state for when we wraparound.
                         scx = x;
                         scy = y;
-                        if vertices[off + i + 1].vertex_type as u8 & 1 == 0 {
+                        if vertices[off + i + 1].type_ as u8 & 1 == 0 {
                             // next point is also a curve point, so interpolate an on-point curve
                             sx = (x + vertices[off + i + 1].x as i32) >> 1;
                             sy = (y + vertices[off + i + 1].y as i32) >> 1;
@@ -590,13 +576,11 @@ impl<Data: Deref<Target = [u8]>> FontInfo<Data> {
                         sy = y;
                     }
                     vertices[num_vertices] = Vertex {
-                        vertex_type: MoveTo,
+                        type_: MoveTo as u8,
                         x: sx as i16,
                         y: sy as i16,
                         cx: 0,
                         cy: 0,
-                        bx: 0i16,
-                        by: 0i16,
                     };
                     num_vertices += 1;
                     was_off = false;
@@ -608,13 +592,11 @@ impl<Data: Deref<Target = [u8]>> FontInfo<Data> {
                         if was_off {
                             // two off-curve control points in a row means interpolate an on-curve midpoint
                             vertices[num_vertices] = Vertex {
-                                vertex_type: CurveTo,
+                                type_: CurveTo as u8,
                                 x: ((cx + x) >> 1) as i16,
                                 y: ((cy + y) >> 1) as i16,
                                 cx: cx as i16,
                                 cy: cy as i16,
-                                bx: 0i16,
-                                by: 0i16,
                             };
                             num_vertices += 1;
                         }
@@ -624,23 +606,19 @@ impl<Data: Deref<Target = [u8]>> FontInfo<Data> {
                     } else {
                         if was_off {
                             vertices[num_vertices] = Vertex {
-                                vertex_type: CurveTo,
+                                type_: CurveTo as u8,
                                 x: x as i16,
                                 y: y as i16,
                                 cx: cx as i16,
                                 cy: cy as i16,
-                                bx: 0i16,
-                                by: 0i16,
                             }
                         } else {
                             vertices[num_vertices] = Vertex {
-                                vertex_type: LineTo,
+                                type_: LineTo as u8,
                                 x: x as i16,
                                 y: y as i16,
                                 cx: 0 as i16,
                                 cy: 0 as i16,
-                                bx: 0i16,
-                                by: 0i16,
                             }
                         }
                         num_vertices += 1;
@@ -734,13 +712,11 @@ impl<Data: Deref<Target = [u8]>> FontInfo<Data> {
                     for v in &mut *comp_verts {
                         let (x, y, cx, cy) = (v.x as f32, v.y as f32, v.cx as f32, v.cy as f32);
                         *v = Vertex {
-                            vertex_type: v.vertex_type,
+                            type_: v.type_,
                             x: (m * (mtx[0] * x + mtx[2] * y + mtx[4])) as i16,
                             y: (n * (mtx[1] * x + mtx[3] * y + mtx[5])) as i16,
                             cx: (m * (mtx[0] * cx + mtx[2] * cy + mtx[4])) as i16,
                             cy: (n * (mtx[1] * cx + mtx[3] * cy + mtx[5])) as i16,
-                            bx: 0i16,
-                            by: 0i16,
                         };
                     }
                     // Append vertices.
@@ -751,7 +727,7 @@ impl<Data: Deref<Target = [u8]>> FontInfo<Data> {
             }
             vertices
         } else if number_of_contours < 0 {
-            panic!("Contour format not supported {}.", number_of_contours)
+            panic!("Contour format not supported.")
         } else {
             return None;
         };

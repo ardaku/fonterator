@@ -488,7 +488,7 @@ impl<'a> Iterator for &mut PathIterator<'a> {
                 self.cx += if self.rl { -self.advance } else { self.advance };
             }
             // END IF-ELSE for ADVANCE
-            self.advance = if let Some(a) = self.glyph_iter.mono {
+            self.advance = if self.glyph_iter.mono.is_some() {
                 if unicode_width::UnicodeWidthChar::width(self.ch) == Some(2) {
                     self.glyph_iter.api_scale.0
                 } else {
@@ -542,7 +542,7 @@ impl<'a> Iterator for &mut PathIterator<'a> {
 
                 unsafe { OP = PathOp::Quad(cx, cy, x, y) };
             }
-            VertexType::CubicTo => {
+/*            VertexType::CubicTo => {
                 let cx = v.cx as f32 * glyph.v.0
                     + self.cx
                     + if self.rl {
@@ -562,7 +562,7 @@ impl<'a> Iterator for &mut PathIterator<'a> {
                 let by = -v.by as f32 * glyph.v.1 + self.cy + ay;
 
                 unsafe { OP = PathOp::Cubic(cx, cy, bx, by, x, y) };
-            },
+            },*/
             VertexType::MoveTo => unsafe { OP = PathOp::Move(x, y) },
         }
 
