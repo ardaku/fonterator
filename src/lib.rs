@@ -11,9 +11,9 @@
 //! 
 //! fn main() {
 //!     // Most common
-//!     let english = "Raster Text With Font"; // LEFT-RIGHT
-//!     let korean = "글꼴로 래스터 텍스트 사용"; // UP-DOWN, RIGHT-LEFT
-//!     let japanese = "フォント付きラスタテキスト"; // UP-DOWN, RIGHT-LEFT
+//!     let english = "Raster Text With Font";
+//!     let korean = "글꼴로 래스터 텍스트 사용";
+//!     let japanese = "フォント付きラスタテキスト";
 //! 
 //!     // Init font, and paths.
 //!     let font = font::monospace_font();
@@ -23,27 +23,43 @@
 //!     let mut r = Raster::new(p.width(), p.height());
 //! 
 //!     // Render English Left Aligned.
-//!     let path = font.render(english, (64.0, 0.0, 512.0 - 64.0, 512.0 - FONT_SIZE), (FONT_SIZE, FONT_SIZE), font::TextAlign::Left);
+//!     let path = font.render(
+//!         english,
+//!         (64.0, 0.0, 512.0 - 64.0, 512.0 - FONT_SIZE),
+//!         (FONT_SIZE, FONT_SIZE),
+//!         font::TextAlign::Left
+//!     );
 //!     let path: Vec<font::PathOp> = path.collect();
 //!     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
 //! 
 //!     // Render Korean Vertically
-//!     let path = font.render(korean, (0.0, 0.0, 512.0, 512.0 - 32.0 * 7.0), (FONT_SIZE, FONT_SIZE), font::TextAlign::Vertical);
+//!     let path = font.render(
+//!         korean,
+//!         (0.0, 0.0, 512.0, 512.0 - 32.0 * 7.0),
+//!         (FONT_SIZE, FONT_SIZE),
+//!         font::TextAlign::Vertical
+//!     );
 //!     let path: Vec<font::PathOp> = path.collect();
 //!     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
 //! 
 //!     // Render Japanese Vertically
-//!     let path = font.render(japanese, (32.0, 0.0, 512.0, 512.0 - 32.0 * 7.0), (FONT_SIZE, FONT_SIZE), font::TextAlign::Vertical);
+//!     let path = font.render(
+//!         japanese,
+//!         (32.0, 0.0, 512.0, 512.0 - 32.0 * 7.0),
+//!         (FONT_SIZE, FONT_SIZE),
+//!         font::TextAlign::Vertical
+//!     );
 //!     let path: Vec<font::PathOp> = path.collect();
 //!     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
 //! 
 //!     // Save PNG
-//!     let raster = RasterBuilder::new().with_u8_buffer(512, 512, r.as_u8_slice());
+//!     let raster = RasterBuilder::new()
+//!         .with_u8_buffer(512, 512, r.as_u8_slice());
 //!     let mut out_data = Vec::new();
 //!     let mut encoder = EncoderBuilder::new();
 //!     let mut encoder = encoder.encode_rasters(&mut out_data);
 //!     encoder.add_frame(&raster, 0).expect("Failed to add frame");
-//!     std::fs::write("dir.png", out_data).expect("Failed to save image");
+//!     std::fs::write("out.png", out_data).expect("Failed to save image");
 //! }
 //! ```
 

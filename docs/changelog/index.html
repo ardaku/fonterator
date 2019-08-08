@@ -1,0 +1,83 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Changelog</title><base href="../"><link rel="icon" href="icon.svg"><link rel="stylesheet" href="style.css"/></head><body><div class="menu"><p><a href="https://libcala.github.io"><img src="https://libcala.github.io/logo.svg" alt="Cala" /></a><a href="https://libcala.github.io/fonterator">About</a><a href="https://github.com/libcala/fonterator">Source</a><a href="https://libcala.github.io/fonterator/changelog">Changelog</a></p>
+</div><div class="content"><div class="page"><h1><a href="#changelog" aria-hidden="true" class="anchor" id="changelog"></a><a href="changelog#changelog">Changelog</a></h1>
+<p>All notable changes to this project will be documented in this file.</p>
+<p>The format is based on <a href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>,<br />
+and this project adheres to <a href="https://free.plopgrizzly.com/semver/">Semantic Versioning</a>.</p>
+<h2><a href="#unreleased" aria-hidden="true" class="anchor" id="unreleased"></a><a href="changelog#unreleased">[Unreleased]</a></h2>
+<h3><a href="#added" aria-hidden="true" class="anchor" id="added"></a><a href="changelog#added">Added</a></h3>
+<h3><a href="#removed" aria-hidden="true" class="anchor" id="removed"></a><a href="changelog#removed">Removed</a></h3>
+<h3><a href="#changed" aria-hidden="true" class="anchor" id="changed"></a><a href="changelog#changed">Changed</a></h3>
+<h3><a href="#fixed" aria-hidden="true" class="anchor" id="fixed"></a><a href="changelog#fixed">Fixed</a></h3>
+<h2><a href="#050---2019-08-08" aria-hidden="true" class="anchor" id="050---2019-08-08"></a><a href="changelog#050---2019-08-08">[0.5.0] - 2019-08-08</a></h2>
+<h3><a href="#added-1" aria-hidden="true" class="anchor" id="added-1"></a><a href="changelog#added">Added</a></h3>
+<ul>
+<li><code>TextAlign</code> enum (replaces <code>vertical()</code>).</li>
+<li><code>licenses</code> function: returns a string of the embedded fonts’ licenses.</li>
+<li><code>BOLD</code>, <code>ITALIC</code>, <code>NONE</code> constants, don’t do anything yet.</li>
+<li>Automatic Right to Left detection and glyph reordering.  Gets rid of need for <code>right_to_left()</code>, so removed.</li>
+</ul>
+<h3><a href="#changed-1" aria-hidden="true" class="anchor" id="changed-1"></a><a href="changelog#changed">Changed</a></h3>
+<ul>
+<li>Use <code>ttf-parser</code> crate to support more fonts.</li>
+<li>Use <code>monospace-font</code> &amp; <code>normal-font</code> features to enable functions <code>monospace_font()</code> and <code>normal_font()</code></li>
+<li>WQY MicroHei -&gt; DroidSans Fallback, fixes some Korean text rendering issues.</li>
+<li><code>render()</code> now takes a bounding box.  Makes <code>xy()</code> unneeded, so removed.</li>
+</ul>
+<h3><a href="#removed-1" aria-hidden="true" class="anchor" id="removed-1"></a><a href="changelog#removed">Removed</a></h3>
+<ul>
+<li><code>multilingual_mono()</code> because it did bad typefacing.</li>
+</ul>
+<h2><a href="#042---2019-07-15" aria-hidden="true" class="anchor" id="042---2019-07-15"></a><a href="changelog#042---2019-07-15">[0.4.2] - 2019-07-15</a></h2>
+<h3><a href="#fixed-1" aria-hidden="true" class="anchor" id="fixed-1"></a><a href="changelog#fixed">Fixed</a></h3>
+<ul>
+<li>Release mode renders correctly now.</li>
+</ul>
+<h2><a href="#041---2019-07-14" aria-hidden="true" class="anchor" id="041---2019-07-14"></a><a href="changelog#041---2019-07-14">[0.4.1] - 2019-07-14</a></h2>
+<h3><a href="#fixed-2" aria-hidden="true" class="anchor" id="fixed-2"></a><a href="changelog#fixed">Fixed</a></h3>
+<ul>
+<li>Multi-lingual monospace not spacing correctly.</li>
+</ul>
+<h2><a href="#040---2019-05-13" aria-hidden="true" class="anchor" id="040---2019-05-13"></a><a href="changelog#040---2019-05-13">[0.4.0] - 2019-05-13</a></h2>
+<h3><a href="#added-2" aria-hidden="true" class="anchor" id="added-2"></a><a href="changelog#added">Added</a></h3>
+<ul>
+<li>You can now use footile from fonterator with <code>use fonterator::footile;</code></li>
+<li>Method <code>xy()</code> on <code>PathIterator</code></li>
+</ul>
+<h3><a href="#changed-2" aria-hidden="true" class="anchor" id="changed-2"></a><a href="changelog#changed">Changed</a></h3>
+<ul>
+<li>Upgrade to newer version of footile (<code>0.3</code>).</li>
+<li>Renamed <code>FontChain</code> to <code>FontGroup</code>.</li>
+<li><code>PathIterator</code> now iterates by mutable reference.</li>
+</ul>
+<h3><a href="#fixed-3" aria-hidden="true" class="anchor" id="fixed-3"></a><a href="changelog#fixed">Fixed</a></h3>
+<ul>
+<li>Not all examples working.</li>
+</ul>
+<h2><a href="#030---2018-12-09" aria-hidden="true" class="anchor" id="030---2018-12-09"></a><a href="changelog#030---2018-12-09">[0.3.0] - 2018-12-09</a></h2>
+<h3><a href="#added-3" aria-hidden="true" class="anchor" id="added-3"></a><a href="changelog#added">Added</a></h3>
+<ul>
+<li><code>FontChain</code> for default and fallback fonts.  <code>FontChain</code> is an abstraction over the old <code>Font</code> and <code>FontCollection</code> structs, which are no longer part of the public API.</li>
+<li>Proper support for multi-lingual monospace with <code>FontChain::multilingual_mono()</code>.</li>
+</ul>
+<h2><a href="#021---2018-12-08" aria-hidden="true" class="anchor" id="021---2018-12-08"></a><a href="changelog#021---2018-12-08">[0.2.1] - 2018-12-08</a></h2>
+<h3><a href="#fixed-4" aria-hidden="true" class="anchor" id="fixed-4"></a><a href="changelog#fixed">Fixed</a></h3>
+<ul>
+<li>Fix README.</li>
+</ul>
+<h2><a href="#020---2018-12-02" aria-hidden="true" class="anchor" id="020---2018-12-02"></a><a href="changelog#020---2018-12-02">[0.2.0] - 2018-12-02</a></h2>
+<h3><a href="#added-4" aria-hidden="true" class="anchor" id="added-4"></a><a href="changelog#added">Added</a></h3>
+<ul>
+<li>Added vertical text layout support.</li>
+<li>Added right-to-left text layout support.</li>
+</ul>
+<h3><a href="#changed-3" aria-hidden="true" class="anchor" id="changed-3"></a><a href="changelog#changed">Changed</a></h3>
+<ul>
+<li>Depend on Footile for <code>PathOp</code>s rather than afi.</li>
+<li>Simpler <code>render</code> API replaces old nested iterator stuff.</li>
+</ul>
+<h2><a href="#010---2018-05-25" aria-hidden="true" class="anchor" id="010---2018-05-25"></a><a href="changelog#010---2018-05-25">[0.1.0] - 2018-05-25</a></h2>
+<h3><a href="#added-5" aria-hidden="true" class="anchor" id="added-5"></a><a href="changelog#added">Added</a></h3>
+<ul>
+<li>Added to crates.io</li>
+</ul>
+</div></div></body>
