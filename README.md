@@ -15,7 +15,7 @@ use png_pong::{RasterBuilder, EncoderBuilder}; // For saving PNG
 const FONT_SIZE: f32 = 32.0;
 
 fn main() {
-    // Most common
+    // Example Text
     let english = "Raster Text With Font";
     let korean = "글꼴로 래스터 텍스트 사용";
     let japanese = "フォント付きラスタテキスト";

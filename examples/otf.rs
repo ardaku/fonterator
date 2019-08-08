@@ -17,7 +17,7 @@ fn main() {
         (0.0, 0.0, 2048.0, 2048.0),         /*position*/
         (256.0, 256.0),     /*size*/
         fonterator::TextAlign::Left,
-    );
+    ).0;
     let path: Vec<footile::PathOp> = path.collect();
     r.over(
         p.fill(&path, FillRule::NonZero),

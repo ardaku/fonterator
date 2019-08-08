@@ -1,5 +1,5 @@
 //! # Fonterator
-//! Fonterator is a pure Rust font renderer.  When you want to render text, fonterator gives you an iterator over [footile](https://crates.io/crates/footile) `PathOp`s, which you can easily pass right into footile.
+//! Load fonts as vector graphics in pure Rust with advanced text layout.  When you want to render text, fonterator gives you an iterator over [footile](https://crates.io/crates/footile) `PathOp`s, which you can easily pass right into footile.
 //! 
 //! # Simple Example
 //! ```rust
@@ -10,7 +10,7 @@
 //! const FONT_SIZE: f32 = 32.0;
 //! 
 //! fn main() {
-//!     // Most common
+//!     // Example Text
 //!     let english = "Raster Text With Font";
 //!     let korean = "글꼴로 래스터 텍스트 사용";
 //!     let japanese = "フォント付きラスタテキスト";
@@ -28,7 +28,7 @@
 //!         (64.0, 0.0, 512.0 - 64.0, 512.0 - FONT_SIZE),
 //!         (FONT_SIZE, FONT_SIZE),
 //!         font::TextAlign::Left
-//!     );
+//!     ).0;
 //!     let path: Vec<font::PathOp> = path.collect();
 //!     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
 //! 
@@ -38,7 +38,7 @@
 //!         (0.0, 0.0, 512.0, 512.0 - 32.0 * 7.0),
 //!         (FONT_SIZE, FONT_SIZE),
 //!         font::TextAlign::Vertical
-//!     );
+//!     ).0;
 //!     let path: Vec<font::PathOp> = path.collect();
 //!     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
 //! 
@@ -48,7 +48,7 @@
 //!         (32.0, 0.0, 512.0, 512.0 - 32.0 * 7.0),
 //!         (FONT_SIZE, FONT_SIZE),
 //!         font::TextAlign::Vertical
-//!     );
+//!     ).0;
 //!     let path: Vec<font::PathOp> = path.collect();
 //!     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
 //! 
@@ -62,6 +62,8 @@
 //!     std::fs::write("out.png", out_data).expect("Failed to save image");
 //! }
 //! ```
+
+#![forbid(unsafe_code)]
 
 use ttf_parser as ttf;
 
@@ -126,17 +128,30 @@ impl<'a> Font<'a> {
         Ok(self)
     }
 
-    /// Render a string.
-    ///
-    /// `bbox`: x, y, width, height.
+    /// Render some text.  Returns an iterator and how many characters were
+    /// rendered inside the bounding box.
+    /// - `text`: text to render.
+    /// - `bbox`: x, y, width, height.
+    /// - `wh`: the size of each character in X & Y dimensions.
+    /// - `text_align`: how the text is aligned
     pub fn render(&'a self, text: &'a str, bbox: (f32, f32, f32, f32), wh: (f32, f32), text_align: TextAlign)
-        -> TextPathIterator<'a>
+        -> (TextPathIterator<'a>, usize)
     {
         let mut pixel_length = 0.0;
         let mut last = None;
+        let mut left_over = None;
+        let mut last_space = 0;
 
         // First Pass: Get pixel length
-        for c in text.chars() {
+        for (i, c) in text.char_indices() {
+            if c == ' ' {
+                last_space = i;
+            }
+            if c == '\n' {
+                left_over = Some(i);
+                break;
+            }
+
             let mut index = 0;
             let glyph_id = loop {
                 match self.fonts[index].none.0.glyph_index(c) {
@@ -161,6 +176,17 @@ impl<'a> Font<'a> {
 
             pixel_length += advance;
 
+            // Extends past the width of the bounding box.
+            if pixel_length > bbox.2 {
+                if last_space != 0 {
+                    left_over = Some(last_space);
+                    break;
+                } else {
+                    left_over = Some(i);
+                    break;
+                }
+            }
+
             last = Some(glyph_id);
         }
 
@@ -178,12 +204,16 @@ impl<'a> Font<'a> {
         bbox.1 += wh.1;
 
         // Second Pass: Get `PathOp`s
-        TextPathIterator {
-            text: text.chars().peekable(),
+        (TextPathIterator {
+            text: if let Some(i) = left_over {
+                text[..i].chars().peekable()
+            } else {
+                text.chars().peekable()
+            },
             temp: vec![],
             back: false,
             path: CharPathIterator::new(self, bbox, wh, vertical),
-        }
+        }, left_over.unwrap_or(text.bytes().len()))
     }
 }
 
@@ -388,7 +418,7 @@ impl<'a> Iterator for TextPathIterator<'a> {
     }
 }
 
-/// Get a monospace font.  Requires feature = "builtin-font".
+/// Get a monospace font.  Requires feature = "monospace-font".
 #[cfg(feature = "monospace-font")]
 pub fn monospace_font() -> Font<'static> {
     const FONTA: &[u8] = include_bytes!("font/dejavu/SansMono.ttf");
@@ -407,7 +437,7 @@ pub fn monospace_font() -> Font<'static> {
         .unwrap()
 }
 
-/// Get a monospace font.  Requires feature = "builtin-font".
+/// Get a monospace font.  Requires feature = "normal-font".
 #[cfg(feature = "normal-font")]
 pub fn normal_font() -> Font<'static> {
     const FONTA: &[u8] = include_bytes!("font/dejavu/Sans.ttf");
@@ -429,7 +459,8 @@ pub fn normal_font() -> Font<'static> {
 #[cfg(any(feature = "monospace-font", feature = "normal-font"))]
 /// Get a text string of the licenses that must be included in a binary program
 /// for using the font.  Assumes BSL-1.0 for fonterator, so fonterator license
-/// does not need to be included.
+/// does not need to be included.  Requires either feature = "monospace-font"
+/// or feature = "normal-font"
 pub fn licenses() -> &'static str {
     include_str!("bin-licenses.txt")
 }

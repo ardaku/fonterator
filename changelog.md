@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://free.plopgrizzly.com/s
 - `licenses` function: returns a string of the embedded fonts' licenses.
 - `BOLD`, `ITALIC`, `NONE` constants, don't do anything yet.
 - Automatic Right to Left detection and glyph reordering.  Gets rid of need for `right_to_left()`, so removed.
+- Text wrapping (see `examples/main.rs` for example on how to use)
+- `#![forbid(unsafe_code)]`
 
 ### Changed
 - Use `ttf-parser` crate to support more fonts.

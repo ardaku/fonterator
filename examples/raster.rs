@@ -11,11 +11,11 @@ fn main() {
     let mut p = Plotter::new(2048, 2048);
     let mut r = Raster::new(p.width(), p.height());
 
-    let path = font.render(STR, (0.0, 0.0, 2048.0, 2048.0), (FONT_SIZE, FONT_SIZE), fonterator::TextAlign::Left);
+    let path = font.render(STR, (0.0, 0.0, 2048.0, 2048.0), (FONT_SIZE, FONT_SIZE), fonterator::TextAlign::Left).0;
     let path: Vec<footile::PathOp> = path.collect();
     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
     let path = font
-        .render(STR, (0.0, 1024.0, 2048.0, 1024.0), (FONT_SIZE, FONT_SIZE), fonterator::TextAlign::Right);
+        .render(STR, (0.0, 1024.0, 2048.0, 1024.0), (FONT_SIZE, FONT_SIZE), fonterator::TextAlign::Right).0;
     let path: Vec<footile::PathOp> = path.collect();
     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
     r.write_png("raster.png").unwrap();

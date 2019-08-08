@@ -19,7 +19,7 @@ fn main() {
         (0.0, 0.0, 2048.0, 256.0),                    /*position*/
         (FONT_SIZE, FONT_SIZE),        /*size*/
         fonterator::TextAlign::Left,
-    );
+    ).0;
     data = Data::new();
 
     for i in &mut path {
