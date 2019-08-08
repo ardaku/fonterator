@@ -1,4 +1,4 @@
-use fonterator::{PathOp};
+use fonterator::PathOp;
 use svg::{
     node::element::{path::Data, Group, Path, Style},
     Document, Node,
@@ -14,12 +14,14 @@ fn main() {
     let mut data; //= Data::new().move_to(vec![0.0, 0.0]);
 
     // Loop through the glyphs in the text, adding to the SVG.
-    let mut path = font.render(
-        "DIVE and…    ‽é¿?üæ", /*text*/
-        (0.0, 0.0, 2048.0, 256.0),                    /*position*/
-        (FONT_SIZE, FONT_SIZE),        /*size*/
-        fonterator::TextAlign::Left,
-    ).0;
+    let mut path = font
+        .render(
+            "DIVE and…    ‽é¿?üæ", /*text*/
+            (0.0, 0.0, 2048.0, 256.0),     /*position*/
+            (FONT_SIZE, FONT_SIZE),        /*size*/
+            fonterator::TextAlign::Left,
+        )
+        .0;
     data = Data::new();
 
     for i in &mut path {
@@ -46,7 +48,8 @@ fn main() {
     group.append(Path::new().set("d", data.clone()));
 
     // Save the image to an SVG file
-    let style = Style::new("path { fill: 0x000000; stroke: black; stroke-width: 3; }");
+    let style =
+        Style::new("path { fill: 0x000000; stroke: black; stroke-width: 3; }");
     let document = Document::new()
         .set("width", 2048.0)
         .set("height", 256.0)

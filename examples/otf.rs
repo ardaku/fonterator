@@ -12,12 +12,14 @@ fn main() {
     let mut r = Raster::new(p.width(), p.height());
 
     // Render the text
-    let path = font.render(
-        "Héllö,\nWørłd!‽i", /*text*/
-        (0.0, 0.0, 2048.0, 2048.0),         /*position*/
-        (256.0, 256.0),     /*size*/
-        fonterator::TextAlign::Left,
-    ).0;
+    let path = font
+        .render(
+            "Héllö,\nWørłd!‽i",   /*text*/
+            (0.0, 0.0, 2048.0, 2048.0), /*position*/
+            (256.0, 256.0),             /*size*/
+            fonterator::TextAlign::Left,
+        )
+        .0;
     let path: Vec<footile::PathOp> = path.collect();
     r.over(
         p.fill(&path, FillRule::NonZero),

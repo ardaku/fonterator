@@ -1,27 +1,27 @@
 //! # Fonterator
 //! Load fonts as vector graphics in pure Rust with advanced text layout.  When you want to render text, fonterator gives you an iterator over [footile](https://crates.io/crates/footile) `PathOp`s, which you can easily pass right into footile.
-//! 
+//!
 //! # Simple Example
 //! ```rust
 //! use fonterator as font; // For parsing font file.
 //! use footile::{FillRule, Plotter, Raster, Rgba8}; // For rendering font text.
 //! use png_pong::{RasterBuilder, EncoderBuilder}; // For saving PNG
-//! 
+//!
 //! const FONT_SIZE: f32 = 32.0;
-//! 
+//!
 //! fn main() {
 //!     // Example Text
 //!     let english = "Raster Text With Font";
 //!     let korean = "글꼴로 래스터 텍스트 사용";
 //!     let japanese = "フォント付きラスタテキスト";
-//! 
+//!
 //!     // Init font, and paths.
 //!     let font = font::monospace_font();
-//! 
+//!
 //!     // Init rendering.
 //!     let mut p = Plotter::new(512, 512);
 //!     let mut r = Raster::new(p.width(), p.height());
-//! 
+//!
 //!     // Render English Left Aligned.
 //!     let path = font.render(
 //!         english,
@@ -31,7 +31,7 @@
 //!     ).0;
 //!     let path: Vec<font::PathOp> = path.collect();
 //!     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
-//! 
+//!
 //!     // Render Korean Vertically
 //!     let path = font.render(
 //!         korean,
@@ -41,7 +41,7 @@
 //!     ).0;
 //!     let path: Vec<font::PathOp> = path.collect();
 //!     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
-//! 
+//!
 //!     // Render Japanese Vertically
 //!     let path = font.render(
 //!         japanese,
@@ -51,7 +51,7 @@
 //!     ).0;
 //!     let path: Vec<font::PathOp> = path.collect();
 //!     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
-//! 
+//!
 //!     // Save PNG
 //!     let raster = RasterBuilder::new()
 //!         .with_u8_buffer(512, 512, r.as_u8_slice());
@@ -64,6 +64,11 @@
 //! ```
 
 #![forbid(unsafe_code)]
+#![warn(missing_docs)]
+#![doc(
+    html_logo_url = "https://libcala.github.io/icon.svg",
+    html_favicon_url = "https://libcala.github.io/icon.svg"
+)]
 
 use ttf_parser as ttf;
 
@@ -115,16 +120,15 @@ impl<'a> Font<'a> {
     }
 
     /// Add a TTF or OTF font's glyphs to this `Font`.
-    pub fn add<B: Into<&'a [u8]>>(mut self, none: B)
-        -> Result<Self, Box<std::error::Error>>
-    {
+    pub fn add<B: Into<&'a [u8]>>(
+        mut self,
+        none: B,
+    ) -> Result<Self, Box<std::error::Error>> {
         let none = ttf::Font::from_data(none.into(), 0)?;
         let em_per_unit = (none.units_per_em().ok_or("em")? as f32).recip();
         let none = LangFont(none, em_per_unit);
 
-        self.fonts.push(StyledFont {
-            none,
-        });
+        self.fonts.push(StyledFont { none });
         Ok(self)
     }
 
@@ -134,9 +138,13 @@ impl<'a> Font<'a> {
     /// - `bbox`: x, y, width, height.
     /// - `wh`: the size of each character in X & Y dimensions.
     /// - `text_align`: how the text is aligned
-    pub fn render(&'a self, text: &'a str, bbox: (f32, f32, f32, f32), wh: (f32, f32), text_align: TextAlign)
-        -> (TextPathIterator<'a>, usize)
-    {
+    pub fn render(
+        &'a self,
+        text: &'a str,
+        bbox: (f32, f32, f32, f32),
+        wh: (f32, f32),
+        text_align: TextAlign,
+    ) -> (TextPathIterator<'a>, usize) {
         let mut pixel_length = 0.0;
         let mut last = None;
         let mut left_over = None;
@@ -160,7 +168,11 @@ impl<'a> Font<'a> {
                         index += 1;
                         if index == self.fonts.len() {
                             eprintln!("No Glyph for \"{}\" ({})", c, c as u32);
-                            break self.fonts[index].none.0.glyph_index('�').unwrap();
+                            break self.fonts[index]
+                                .none
+                                .0
+                                .glyph_index('�')
+                                .unwrap();
                         }
                     }
                 }
@@ -170,7 +182,18 @@ impl<'a> Font<'a> {
             let wh = (wh.0 * selected_font.1, -wh.1 * selected_font.1);
 
             let advance = match selected_font.0.glyph_hor_metrics(glyph_id) {
-                Ok(v) => (v.advance as f32 + if let Some(last) = last { selected_font.0.glyphs_kerning(glyph_id, last).unwrap_or(0) as f32 } else { 0f32 }) * wh.0,
+                Ok(v) => {
+                    (v.advance as f32
+                        + if let Some(last) = last {
+                            selected_font
+                                .0
+                                .glyphs_kerning(glyph_id, last)
+                                .unwrap_or(0) as f32
+                        } else {
+                            0f32
+                        })
+                        * wh.0
+                }
                 Err(_) => 0.0,
             };
 
@@ -194,26 +217,31 @@ impl<'a> Font<'a> {
         let mut vertical = false;
 
         match text_align {
-            TextAlign::Left => { /* don't adjust */ },
+            TextAlign::Left => { /* don't adjust */ }
             TextAlign::Right => bbox.0 = bbox.2 - pixel_length,
-            TextAlign::Center => bbox.0 = (bbox.0 + bbox.2 - pixel_length) * 0.5,
-            TextAlign::Justified => { /* don't adjust */ },
+            TextAlign::Center => {
+                bbox.0 = (bbox.0 + bbox.2 - pixel_length) * 0.5
+            }
+            TextAlign::Justified => { /* don't adjust */ }
             TextAlign::Vertical => vertical = true,
         }
 
         bbox.1 += wh.1;
 
         // Second Pass: Get `PathOp`s
-        (TextPathIterator {
-            text: if let Some(i) = left_over {
-                text[..i].chars().peekable()
-            } else {
-                text.chars().peekable()
+        (
+            TextPathIterator {
+                text: if let Some(i) = left_over {
+                    text[..i].chars().peekable()
+                } else {
+                    text.chars().peekable()
+                },
+                temp: vec![],
+                back: false,
+                path: CharPathIterator::new(self, bbox, wh, vertical),
             },
-            temp: vec![],
-            back: false,
-            path: CharPathIterator::new(self, bbox, wh, vertical),
-        }, left_over.unwrap_or(text.bytes().len()))
+            left_over.unwrap_or(text.bytes().len()),
+        )
     }
 }
 
@@ -243,7 +271,12 @@ struct CharPathIterator<'a> {
 }
 
 impl<'a> CharPathIterator<'a> {
-    fn new(font: &'a Font<'a>, bbox: (f32, f32, f32, f32), size: (f32, f32), vertical: bool) -> Self {
+    fn new(
+        font: &'a Font<'a>,
+        bbox: (f32, f32, f32, f32),
+        size: (f32, f32),
+        vertical: bool,
+    ) -> Self {
         Self {
             font,
             path: vec![],
@@ -295,18 +328,22 @@ impl<'a> CharPathIterator<'a> {
 
         self.path.clear();
 
-/*        if self.bold {
+        /*        if self.bold {
             self.path.push(PathOp::PenWidth(self.size.0 / 10.0));
         }*/
 
-        self.wh = (self.size.0 * selected_font.1, -self.size.1 * selected_font.1);
+        self.wh = (
+            self.size.0 * selected_font.1,
+            -self.size.1 * selected_font.1,
+        );
         match selected_font.0.outline_glyph(glyph_id, self) {
-            Ok(_v) => {},
-            Err(ttf::Error::NoOutline) => { /* whitespace */ },
-            Err(ttf::Error::NoGlyph) => { /* unknown glyph */
+            Ok(_v) => {}
+            Err(ttf::Error::NoOutline) => { /* whitespace */ }
+            Err(ttf::Error::NoGlyph) => {
+                /* unknown glyph */
                 let id = self.font.fonts[0].none.0.glyph_index('�')?;
                 selected_font.0.outline_glyph(id, self).unwrap();
-            },
+            }
             Err(e) => {
                 eprintln!("Warning (glyph {}): {}.", glyph_id.0, e);
                 return Err(e);
@@ -317,7 +354,18 @@ impl<'a> CharPathIterator<'a> {
             self.xy.1 += self.size.1;
         } else {
             let advance = match selected_font.0.glyph_hor_metrics(glyph_id) {
-                Ok(v) => (v.advance as f32 + if let Some(last) = self.last { selected_font.0.glyphs_kerning(glyph_id, last).unwrap_or(0) as f32 } else { 0f32 }) * self.wh.0,
+                Ok(v) => {
+                    (v.advance as f32
+                        + if let Some(last) = self.last {
+                            selected_font
+                                .0
+                                .glyphs_kerning(glyph_id, last)
+                                .unwrap_or(0) as f32
+                        } else {
+                            0f32
+                        })
+                        * self.wh.0
+                }
                 Err(_) => 0.0,
             };
             self.xy.0 += advance;
@@ -333,19 +381,37 @@ impl<'a> CharPathIterator<'a> {
 
 impl ttf::OutlineBuilder for CharPathIterator<'_> {
     fn move_to(&mut self, x: f32, y: f32) {
-        self.path.push(PathOp::Move(x * self.wh.0 + self.xy.0, y * self.wh.1 + self.xy.1));
+        self.path.push(PathOp::Move(
+            x * self.wh.0 + self.xy.0,
+            y * self.wh.1 + self.xy.1,
+        ));
     }
 
     fn line_to(&mut self, x: f32, y: f32) {
-        self.path.push(PathOp::Line(x * self.wh.0 + self.xy.0, y * self.wh.1 + self.xy.1));
+        self.path.push(PathOp::Line(
+            x * self.wh.0 + self.xy.0,
+            y * self.wh.1 + self.xy.1,
+        ));
     }
 
     fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
-        self.path.push(PathOp::Quad(x1 * self.wh.0 + self.xy.0, y1 * self.wh.1 + self.xy.1, x * self.wh.0 + self.xy.0, y * self.wh.1 + self.xy.1));
+        self.path.push(PathOp::Quad(
+            x1 * self.wh.0 + self.xy.0,
+            y1 * self.wh.1 + self.xy.1,
+            x * self.wh.0 + self.xy.0,
+            y * self.wh.1 + self.xy.1,
+        ));
     }
 
     fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
-        self.path.push(PathOp::Cubic(x1 * self.wh.0 + self.xy.0, y1 * self.wh.1 + self.xy.1, x2 * self.wh.0 + self.xy.0, y2 * self.wh.1 + self.xy.1, x * self.wh.0 + self.xy.0, y * self.wh.1 + self.xy.1));
+        self.path.push(PathOp::Cubic(
+            x1 * self.wh.0 + self.xy.0,
+            y1 * self.wh.1 + self.xy.1,
+            x2 * self.wh.0 + self.xy.0,
+            y2 * self.wh.1 + self.xy.1,
+            x * self.wh.0 + self.xy.0,
+            y * self.wh.1 + self.xy.1,
+        ));
     }
 
     fn close(&mut self) {
@@ -418,7 +484,7 @@ impl<'a> Iterator for TextPathIterator<'a> {
     }
 }
 
-/// Get a monospace font.  Requires feature = "monospace-font".
+/// Get a monospace font.  Requires feature = "monospace-font", enabled by default.
 #[cfg(feature = "monospace-font")]
 pub fn monospace_font() -> Font<'static> {
     const FONTA: &[u8] = include_bytes!("font/dejavu/SansMono.ttf");

@@ -14,9 +14,9 @@ fn main() {
     let mut line = 0;
     loop {
         let (path, l) = font.render(
-            &text[begin..],     /*text*/
-            (0.0, line as f32 * 256.0, 2048.0, 2048.0),                     /*bbox*/
-            (256.0, 256.0),                                 /*size*/
+            &text[begin..],                             /*text*/
+            (0.0, line as f32 * 256.0, 2048.0, 2048.0), /*bbox*/
+            (256.0, 256.0),                             /*size*/
             fonterator::TextAlign::Left,
         );
         println!("{} {}", begin, begin + l);
@@ -27,7 +27,9 @@ fn main() {
         );
         begin += l;
         line += 1;
-        if l == 0 { break }
+        if l == 0 {
+            break;
+        }
     }
     r.write_png("main.png").unwrap(); /*save as PNG*/
 }

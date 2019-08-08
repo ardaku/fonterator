@@ -1,6 +1,6 @@
 //! Code for detecting font direction.
 
-/// 
+///
 #[derive(PartialEq)]
 pub(super) enum Direction {
     /// Either Left-Right-Top-Bottom or Top-Bottom-Right-Left
