@@ -69,12 +69,13 @@ fn main() {
 ```
 
 ## Features
-* Load TTF/OTF fonts and font collections.
-* Automatic kerning and font layout.
-* Horizontal and vertical text layout.
-* Left-to-right and right-to-left text layout.
-* Use fallback fonts if a character is not available from one font.
-* Align text left/center/right/vertical 
+- Load TTF/OTF fonts and font collections.
+- Automatic kerning and font layout.
+- Horizontal and vertical text layout.
+- Left-to-right and right-to-left text layout.
+- Use fallback fonts if a character is not available from one font.
+- Align text left/center/right/vertical
+- Line Wrapping
 
 ## TODO
 - [Arabic and other script text shaping](https://github.com/plopgrizzly/fonterator/issues/3)
