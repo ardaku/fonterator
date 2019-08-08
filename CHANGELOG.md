@@ -10,6 +10,22 @@ and this project adheres to [Semantic Versioning](https://free.plopgrizzly.com/s
 ### Changed
 ### Fixed
 
+## [0.5.0] - 2019-08-08
+### Added
+- `TextAlign` enum (replaces `vertical()`).
+- `licenses` function: returns a string of the embedded fonts' licenses.
+- `BOLD`, `ITALIC`, `NONE` constants, don't do anything yet.
+- Automatic Right to Left detection and glyph reordering.  Gets rid of need for `right_to_left()`, so removed.
+
+### Changed
+- Use `ttf-parser` crate to support more fonts.
+- Use `monospace-font` & `normal-font` features to enable functions `monospace_font()` and `normal_font()`
+- WQY MicroHei -> DroidSans Fallback, fixes some Korean text rendering issues.
+- `render()` now takes a bounding box.  Makes `xy()` unneeded, so removed.
+
+### Removed
+- `multilingual_mono()` because it did bad typefacing.
+
 ## [0.4.2] - 2019-07-15
 ### Fixed
 - Release mode renders correctly now.

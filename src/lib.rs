@@ -1,12 +1,93 @@
+//! # Fonterator
+//! Fonterator is a pure Rust font renderer.  When you want to render text, fonterator gives you an iterator over [footile](https://crates.io/crates/footile) `PathOp`s, which you can easily pass right into footile.
+//! 
+//! # Simple Example
+//! ```rust
+//! use fonterator as font; // For parsing font file.
+//! use footile::{FillRule, Plotter, Raster, Rgba8}; // For rendering font text.
+//! use png_pong::{RasterBuilder, EncoderBuilder}; // For saving PNG
+//! 
+//! const FONT_SIZE: f32 = 32.0;
+//! 
+//! fn main() {
+//!     // Most common
+//!     let english = "Raster Text With Font"; // LEFT-RIGHT
+//!     let korean = "글꼴로 래스터 텍스트 사용"; // UP-DOWN, RIGHT-LEFT
+//!     let japanese = "フォント付きラスタテキスト"; // UP-DOWN, RIGHT-LEFT
+//! 
+//!     // Init font, and paths.
+//!     let font = font::monospace_font();
+//! 
+//!     // Init rendering.
+//!     let mut p = Plotter::new(512, 512);
+//!     let mut r = Raster::new(p.width(), p.height());
+//! 
+//!     // Render English Left Aligned.
+//!     let path = font.render(english, (64.0, 0.0, 512.0 - 64.0, 512.0 - FONT_SIZE), (FONT_SIZE, FONT_SIZE), font::TextAlign::Left);
+//!     let path: Vec<font::PathOp> = path.collect();
+//!     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+//! 
+//!     // Render Korean Vertically
+//!     let path = font.render(korean, (0.0, 0.0, 512.0, 512.0 - 32.0 * 7.0), (FONT_SIZE, FONT_SIZE), font::TextAlign::Vertical);
+//!     let path: Vec<font::PathOp> = path.collect();
+//!     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+//! 
+//!     // Render Japanese Vertically
+//!     let path = font.render(japanese, (32.0, 0.0, 512.0, 512.0 - 32.0 * 7.0), (FONT_SIZE, FONT_SIZE), font::TextAlign::Vertical);
+//!     let path: Vec<font::PathOp> = path.collect();
+//!     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+//! 
+//!     // Save PNG
+//!     let raster = RasterBuilder::new().with_u8_buffer(512, 512, r.as_u8_slice());
+//!     let mut out_data = Vec::new();
+//!     let mut encoder = EncoderBuilder::new();
+//!     let mut encoder = encoder.encode_rasters(&mut out_data);
+//!     encoder.add_frame(&raster, 0).expect("Failed to add frame");
+//!     std::fs::write("dir.png", out_data).expect("Failed to save image");
+//! }
+//! ```
+
 use ttf_parser as ttf;
 
 pub use footile;
 pub use footile::PathOp;
 
+mod direction;
+
+use direction::Direction;
+
+/// Text alignment.
+pub enum TextAlign {
+    /// Align text to the left.
+    Left,
+    /// Align text to the center.
+    Center,
+    /// Align text to the right.
+    Right,
+    /// Justify text.
+    Justified,
+    /// Vertical text.
+    Vertical,
+}
+
+/// No emphasis
+pub const NONE: char = '\x01'; // Start of Heading
+/// Bold
+pub const BOLD: char = '\x02'; // Start of Text
+/// Italic
+pub const ITALIC: char = '\x03'; // End of Text
+
+struct LangFont<'a>(ttf::Font<'a>, f32);
+
+struct StyledFont<'a> {
+    // Required
+    none: LangFont<'a>,
+}
+
 /// A collection of TTF/OTF fonts used as a single font.
 #[derive(Default)]
 pub struct Font<'a> {
-    fonts: Vec<(ttf::Font<'a>, f32)>,
+    fonts: Vec<StyledFont<'a>>,
 }
 
 impl<'a> Font<'a> {
@@ -16,123 +97,79 @@ impl<'a> Font<'a> {
     }
 
     /// Add a TTF or OTF font's glyphs to this `Font`.
-    pub fn add<B: Into<&'a [u8]>>(mut self, bytes: B)
+    pub fn add<B: Into<&'a [u8]>>(mut self, none: B)
         -> Result<Self, Box<std::error::Error>>
     {
-        let font = ttf::Font::from_data(bytes.into(), 0)?;
-        let ems_per_unit = (font.units_per_em().ok_or("em")? as f32).recip();
-        self.fonts.push((font, ems_per_unit));
+        let none = ttf::Font::from_data(none.into(), 0)?;
+        let em_per_unit = (none.units_per_em().ok_or("em")? as f32).recip();
+        let none = LangFont(none, em_per_unit);
+
+        self.fonts.push(StyledFont {
+            none,
+        });
         Ok(self)
     }
 
     /// Render a string.
-    pub fn render(&'a self, text: &'a str, xy: (f32, f32), wh: (f32, f32))
+    ///
+    /// `bbox`: x, y, width, height.
+    pub fn render(&'a self, text: &'a str, bbox: (f32, f32, f32, f32), wh: (f32, f32), text_align: TextAlign)
         -> TextPathIterator<'a>
     {
+        let mut pixel_length = 0.0;
+        let mut last = None;
+
+        // First Pass: Get pixel length
+        for c in text.chars() {
+            let mut index = 0;
+            let glyph_id = loop {
+                match self.fonts[index].none.0.glyph_index(c) {
+                    Ok(v) => break v,
+                    Err(_e) => {
+                        index += 1;
+                        if index == self.fonts.len() {
+                            eprintln!("No Glyph for \"{}\" ({})", c, c as u32);
+                            break self.fonts[index].none.0.glyph_index('�').unwrap();
+                        }
+                    }
+                }
+            };
+
+            let selected_font = &self.fonts[index].none;
+            let wh = (wh.0 * selected_font.1, -wh.1 * selected_font.1);
+
+            let advance = match selected_font.0.glyph_hor_metrics(glyph_id) {
+                Ok(v) => (v.advance as f32 + if let Some(last) = last { selected_font.0.glyphs_kerning(glyph_id, last).unwrap_or(0) as f32 } else { 0f32 }) * wh.0,
+                Err(_) => 0.0,
+            };
+
+            pixel_length += advance;
+
+            last = Some(glyph_id);
+        }
+
+        let mut bbox = (bbox.0, bbox.1, bbox.0 + bbox.2, bbox.1 + bbox.3);
+        let mut vertical = false;
+
+        match text_align {
+            TextAlign::Left => { /* don't adjust */ },
+            TextAlign::Right => bbox.0 = bbox.2 - pixel_length,
+            TextAlign::Center => bbox.0 = (bbox.0 + bbox.2 - pixel_length) * 0.5,
+            TextAlign::Justified => { /* don't adjust */ },
+            TextAlign::Vertical => vertical = true,
+        }
+
+        bbox.1 += wh.1;
+
+        // Second Pass: Get `PathOp`s
         TextPathIterator {
-            text: text.chars(),
-            path: CharPathIterator::new(self, xy, wh),
-            op: PathOp::Close(),
+            text: text.chars().peekable(),
+            temp: vec![],
+            back: false,
+            path: CharPathIterator::new(self, bbox, wh, vertical),
         }
     }
 }
-
-/*pub fn process() {
-    let units_per_em = font.units_per_em().ok_or("invalid units per em")?;
-    let scale = font_size / units_per_em;
-
-    let cell_size = font.height() as f64 * FONT_SIZE / units_per_em as f64;
-    let rows = (font.number_of_glyphs() as f64 / COLUMNS as f64).ceil() as u32;
-
-    let mut path_buf = Vec::with_capacity(64);
-    let mut row = 0;
-    let mut column = 0;
-    for id in 0..font.number_of_glyphs() {
-        glyph_to_path(
-            column as f64 * cell_size,
-            row as f64 * cell_size,
-            &font,
-            ttf::GlyphId(id),
-            cell_size,
-            scale,
-            &mut svg,
-            &mut path_buf,
-        );
-
-        column += 1;
-        if column == COLUMNS {
-            column = 0;
-            row += 1;
-        }
-    }
-
-    Ok(())
-}*/
-
-/*fn glyph_to_path(
-    x: f64,
-    y: f64,
-    font: &ttf::Font,
-    glyph_id: ttf::GlyphId,
-    cell_size: f64,
-    scale: f64,
-    svg: &mut xmlwriter::XmlWriter,
-    path_buf: &mut svgtypes::Path,
-) {
-    svg.start_element("text");
-    svg.write_attribute("x", &(x + 2.0));
-    svg.write_attribute("y", &(y + cell_size - 4.0));
-    svg.write_attribute("font-size", "36");
-    svg.write_attribute("fill", "gray");
-    svg.write_text_fmt(format_args!("{}", glyph_id.0));
-    svg.end_element();
-
-    path_buf.clear();
-    let mut builder = Builder(path_buf);
-    let bbox = match font.outline_glyph(glyph_id, &mut builder) {
-        Ok(v) => v,
-        Err(ttf::Error::NoOutline) => return,
-        Err(ttf::Error::NoGlyph) => return,
-        Err(e) => {
-            eprintln!("Warning (glyph {}): {}.", glyph_id.0, e);
-            return;
-        }
-    };
-
-    let metrics = match font.glyph_hor_metrics(glyph_id) {
-        Ok(v) => v,
-        Err(_) => return,
-    };
-
-    let dx = (cell_size - metrics.advance as f64 * scale) / 2.0;
-    let y = y + cell_size + font.descender() as f64 * scale;
-
-    let mut ts = svgtypes::Transform::default();
-    ts.translate(x + dx, y);
-    ts.scale(1.0, -1.0);
-    ts.scale(scale, scale);
-
-    svg.start_element("path");
-    svg.write_attribute_raw("d", |buf| path_buf.write_buf(buf));
-    svg.write_attribute_raw("transform", |buf| ts.write_buf(buf));
-    svg.end_element();
-
-    {
-        let bbox_w = (bbox.x_max as f64 - bbox.x_min as f64) * scale;
-        let bbox_h = (bbox.y_max as f64 - bbox.y_min as f64) * scale;
-        let bbox_x = x + dx + bbox.x_min as f64 * scale;
-        let bbox_y = y - bbox.y_min as f64 * scale - bbox_h;
-
-        svg.start_element("rect");
-        svg.write_attribute("x", &bbox_x);
-        svg.write_attribute("y", &bbox_y);
-        svg.write_attribute("width", &bbox_w);
-        svg.write_attribute("height", &bbox_h);
-        svg.write_attribute("fill", "none");
-        svg.write_attribute("stroke", "green");
-        svg.end_element();
-    }
-}*/
 
 struct CharPathIterator<'a> {
     // The font to use.
@@ -141,27 +178,62 @@ struct CharPathIterator<'a> {
     path: Vec<PathOp>,
     // W & H
     size: (f32, f32),
-    // X & Y
-    xy: (f32, f32),
+    // X, Y, X2, Y2
+    bbox: (f32, f32, f32, f32),
     // Multiplied wh.
     wh: (f32, f32),
+    // Return position for X.
+    xy: (f32, f32),
+    // General direction of the text.
+    direction: Direction,
+    // Last character
+    last: Option<ttf_parser::GlyphId>,
+    //
+    vertical: bool,
+    //
+    bold: bool,
+    //
+    italic: bool,
 }
 
 impl<'a> CharPathIterator<'a> {
-    fn new(font: &'a Font<'a>, xy: (f32, f32), size: (f32, f32)) -> Self {
+    fn new(font: &'a Font<'a>, bbox: (f32, f32, f32, f32), size: (f32, f32), vertical: bool) -> Self {
         Self {
             font,
             path: vec![],
-            xy,
+            bbox,
             size,
             wh: (0.0, 0.0),
+            xy: (bbox.0, bbox.1),
+            direction: Direction::CheckNext,
+            last: None,
+            vertical,
+            bold: false,
+            italic: false,
         }
     }
 
     fn set(&mut self, c: char) -> Result<(), ttf::Error> {
+        if c == BOLD {
+            self.bold = true;
+            return Ok(());
+        } else if c == ITALIC {
+            self.italic = true;
+            return Ok(());
+        } else if c == NONE {
+            self.bold = false;
+            self.italic = false;
+            return Ok(());
+        }
+
+        if self.direction == Direction::CheckNext {
+            self.direction = direction::direction(c);
+            self.xy = (self.bbox.0, self.bbox.1);
+        }
+
         let mut index = 0;
         let glyph_id = loop {
-            match self.font.fonts[index].0.glyph_index(c) {
+            match self.font.fonts[index].none.0.glyph_index(c) {
                 Ok(v) => break v,
                 Err(e) => {
                     index += 1;
@@ -173,19 +245,41 @@ impl<'a> CharPathIterator<'a> {
             }
         };
 
+        let selected_font = &self.font.fonts[index].none;
+
         self.path.clear();
-        self.wh = (self.size.0 * self.font.fonts[index].1, self.size.1 * self.font.fonts[index].1);
-        let bbox = match self.font.fonts[index].0.outline_glyph(glyph_id, self) {
-            Ok(v) => v,
-            Err(ttf::Error::NoOutline) => return Err(ttf::Error::NoOutline),
-            Err(ttf::Error::NoGlyph) => return Err(ttf::Error::NoGlyph),
+
+/*        if self.bold {
+            self.path.push(PathOp::PenWidth(self.size.0 / 10.0));
+        }*/
+
+        self.wh = (self.size.0 * selected_font.1, -self.size.1 * selected_font.1);
+        match selected_font.0.outline_glyph(glyph_id, self) {
+            Ok(_v) => {},
+            Err(ttf::Error::NoOutline) => { /* whitespace */ },
+            Err(ttf::Error::NoGlyph) => { /* unknown glyph */
+                let id = self.font.fonts[0].none.0.glyph_index('�')?;
+                selected_font.0.outline_glyph(id, self).unwrap();
+            },
             Err(e) => {
                 eprintln!("Warning (glyph {}): {}.", glyph_id.0, e);
                 return Err(e);
             }
         };
 
+        if self.vertical {
+            self.xy.1 += self.size.1;
+        } else {
+            let advance = match selected_font.0.glyph_hor_metrics(glyph_id) {
+                Ok(v) => (v.advance as f32 + if let Some(last) = self.last { selected_font.0.glyphs_kerning(glyph_id, last).unwrap_or(0) as f32 } else { 0f32 }) * self.wh.0,
+                Err(_) => 0.0,
+            };
+            self.xy.0 += advance;
+        }
+
         self.path.reverse();
+
+        self.last = Some(glyph_id);
 
         Ok(())
     }
@@ -221,47 +315,105 @@ impl<'a> Iterator for CharPathIterator<'a> {
     }
 }
 
+/// Iterator that generates path from characters.
 pub struct TextPathIterator<'a> {
     // The text that we're parsing.
-    text: std::str::Chars<'a>,
+    text: std::iter::Peekable<std::str::Chars<'a>>,
+    // Temporary text.
+    temp: Vec<char>,
+    // Backwards text.
+    back: bool,
     // Path for the current character.
     path: CharPathIterator<'a>,
-    //
-    op: PathOp,
 }
 
-impl<'a> TextPathIterator<'a> {
-    fn test(&'a self) -> &'a PathOp {
-        &self.op
-    }
-}
-
-impl<'a> Iterator for &'a mut TextPathIterator<'a> {
+impl<'a> Iterator for TextPathIterator<'a> {
     type Item = PathOp;
 
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next(&mut self) -> Option<PathOp> {
         if let Some(op) = self.path.next() {
             Some(op)
         } else {
-            if let Some(c) = self.text.next() {
-                self.path.set(c);
+            if let Some(c) = self.text.peek() {
+                let dir = direction::direction(*c);
+                let dir = if dir == Direction::CheckNext {
+                    if self.back {
+                        Direction::RightLeft
+                    } else {
+                        Direction::LeftRight
+                    }
+                } else {
+                    dir
+                };
+                if dir == Direction::RightLeft {
+                    let c = self.text.next().unwrap();
+                    if !self.back {
+                        self.back = true;
+                    }
+                    self.temp.push(c);
+                } else {
+                    if let Some(c) = self.temp.pop() {
+                        let _ = self.path.set(c);
+                    } else {
+                        let c = self.text.next().unwrap();
+                        let _ = self.path.set(c);
+                    }
+                }
                 self.next()
             } else {
-                None
+                if let Some(c) = self.temp.pop() {
+                    let _ = self.path.set(c);
+                    self.next()
+                } else {
+                    None
+                }
             }
         }
     }
 }
 
 /// Get a monospace font.  Requires feature = "builtin-font".
-#[cfg(feature = "builtin-font")]
+#[cfg(feature = "monospace-font")]
 pub fn monospace_font() -> Font<'static> {
-    const FONTA: &[u8] = include_bytes!("font/dejavu/DejaVuSansMono.ttf");
-    const FONTB: &[u8] = include_bytes!("font/wqy-microhei/WenQuanYiMicroHeiMono.ttf");
+    const FONTA: &[u8] = include_bytes!("font/dejavu/SansMono.ttf");
+    const FONTB: &[u8] = include_bytes!("font/noto/SansDevanagari.ttf");
+    const FONTC: &[u8] = include_bytes!("font/noto/SansHebrew.ttf");
+    const FONTD: &[u8] = include_bytes!("font/droid/SansFallback.ttf");
 
     Font::new()
         .add(FONTA)
         .unwrap()
         .add(FONTB)
         .unwrap()
+        .add(FONTC)
+        .unwrap()
+        .add(FONTD)
+        .unwrap()
+}
+
+/// Get a monospace font.  Requires feature = "builtin-font".
+#[cfg(feature = "normal-font")]
+pub fn normal_font() -> Font<'static> {
+    const FONTA: &[u8] = include_bytes!("font/dejavu/Sans.ttf");
+    const FONTB: &[u8] = include_bytes!("font/noto/SansDevanagari.ttf");
+    const FONTC: &[u8] = include_bytes!("font/noto/SansHebrew.ttf");
+    const FONTD: &[u8] = include_bytes!("font/droid/SansFallback.ttf");
+
+    Font::new()
+        .add(FONTA)
+        .unwrap()
+        .add(FONTB)
+        .unwrap()
+        .add(FONTC)
+        .unwrap()
+        .add(FONTD)
+        .unwrap()
+}
+
+#[cfg(any(feature = "monospace-font", feature = "normal-font"))]
+/// Get a text string of the licenses that must be included in a binary program
+/// for using the font.  Assumes BSL-1.0 for fonterator, so fonterator license
+/// does not need to be included.
+pub fn licenses() -> &'static str {
+    include_str!("bin-licenses.txt")
 }
