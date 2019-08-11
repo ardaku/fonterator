@@ -16,8 +16,8 @@ fn main() {
                                       // Note that any direction works for these languages, but traditionally
                                       // up-down, right-left.  Commonly LEFT-RIGHT
     let korean = "글꼴로 래스터 텍스트 사용"; // UP-DOWN, RIGHT-LEFT
-    let japanese = "フォント付きラスタテキスト"; // UP-DOWN, RIGHT-LEFT
-                                                 //
+    let japanese = "フォント 付きラス タテキス ト"; // UP-DOWN, RIGHT-LEFT
+                                                    //
     let _hanunuo = "ᜱᜨᜳᜨᜳᜢ"; // LEFT-RIGHT, DOWN-UP
 
     // Init font, and paths.
