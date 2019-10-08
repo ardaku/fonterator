@@ -123,7 +123,7 @@ impl<'a> Font<'a> {
     pub fn add<B: Into<&'a [u8]>>(
         mut self,
         none: B,
-    ) -> Result<Self, Box<std::error::Error>> {
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         let none = ttf::Font::from_data(none.into(), 0)?;
         let em_per_height = (none.height() as f32).recip();
         let none = LangFont(none, em_per_height);
