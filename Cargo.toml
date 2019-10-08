@@ -32,7 +32,7 @@ all-features = true
 [dependencies]
 footile = "0.3" # { path = "../../fork/footile" } # "0.3"
 # unicode-width = "0.1"
-ttf-parser = "0.2" # For reading TTF/OTF files
+ttf-parser = "0.3" # For reading TTF/OTF files
 unicode-script = "0.3" # For calculating text direction.
 
 [dev-dependencies]
