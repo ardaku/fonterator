@@ -5,7 +5,7 @@ const FONT: &'static [u8] = include_bytes!("scorlatti-26.otf");
 
 fn main() {
     // Load the default FontGroup (font and fallbacks).
-    let font = Font::new().add(FONT).unwrap();
+    let font = Font::new().push(FONT).unwrap();
 
     // Init rendering
     let mut p = Plotter::new(2048, 2048);

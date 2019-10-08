@@ -120,12 +120,12 @@ impl<'a> Font<'a> {
     }
 
     /// Add a TTF or OTF font's glyphs to this `Font`.
-    pub fn add<B: Into<&'a [u8]>>(
+    pub fn push<B: Into<&'a [u8]>>(
         mut self,
         none: B,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let none = ttf::Font::from_data(none.into(), 0)?;
-        let em_per_height = (none.height() as f32).recip();
+        let em_per_height = f32::from(none.height()).recip();
         let none = LangFont(none, em_per_height);
 
         self.fonts.push(StyledFont { none });
@@ -183,12 +183,13 @@ impl<'a> Font<'a> {
 
             let advance = match selected_font.0.glyph_hor_metrics(glyph_id) {
                 Ok(v) => {
-                    (v.advance as f32
+                    (f32::from(v.advance)
                         + if let Some(last) = last {
                             selected_font
                                 .0
                                 .glyphs_kerning(glyph_id, last)
-                                .unwrap_or(0) as f32
+                                .unwrap_or(0)
+                                .into()
                         } else {
                             0f32
                         })
@@ -240,7 +241,7 @@ impl<'a> Font<'a> {
                 back: false,
                 path: CharPathIterator::new(self, bbox, wh, vertical),
             },
-            left_over.unwrap_or(text.bytes().len()),
+            left_over.unwrap_or_else(|| text.bytes().len()),
         )
     }
 }
@@ -338,9 +339,8 @@ impl<'a> CharPathIterator<'a> {
             self.size.0 * selected_font.1,
             -self.size.1 * selected_font.1,
         );
-        let em_per_unit = (selected_font.0.units_per_em().ok_or("em").unwrap()
-            as f32)
-            .recip();
+        let em_per_unit =
+            f32::from(selected_font.0.units_per_em().ok_or("em").unwrap());
         let h = selected_font.1 * self.size.1 / em_per_unit;
         self.offset = -self.size.1 + h;
         match selected_font.0.outline_glyph(glyph_id, self) {
@@ -362,12 +362,13 @@ impl<'a> CharPathIterator<'a> {
         } else {
             let advance = match selected_font.0.glyph_hor_metrics(glyph_id) {
                 Ok(v) => {
-                    (v.advance as f32
+                    (f32::from(v.advance)
                         + if let Some(last) = self.last {
                             selected_font
                                 .0
                                 .glyphs_kerning(glyph_id, last)
-                                .unwrap_or(0) as f32
+                                .unwrap_or(0)
+                                .into()
                         } else {
                             0f32
                         })
@@ -452,41 +453,35 @@ impl<'a> Iterator for TextPathIterator<'a> {
     fn next(&mut self) -> Option<PathOp> {
         if let Some(op) = self.path.next() {
             Some(op)
-        } else {
-            if let Some(c) = self.text.peek() {
-                let dir = direction::direction(*c);
-                let dir = if dir == Direction::CheckNext {
-                    if self.back {
-                        Direction::RightLeft
-                    } else {
-                        Direction::LeftRight
-                    }
+        } else if let Some(c) = self.text.peek() {
+            let dir = direction::direction(*c);
+            let dir = if dir == Direction::CheckNext {
+                if self.back {
+                    Direction::RightLeft
                 } else {
-                    dir
-                };
-                if dir == Direction::RightLeft {
-                    let c = self.text.next().unwrap();
-                    if !self.back {
-                        self.back = true;
-                    }
-                    self.temp.push(c);
-                } else {
-                    if let Some(c) = self.temp.pop() {
-                        let _ = self.path.set(c);
-                    } else {
-                        let c = self.text.next().unwrap();
-                        let _ = self.path.set(c);
-                    }
+                    Direction::LeftRight
                 }
-                self.next()
             } else {
-                if let Some(c) = self.temp.pop() {
-                    let _ = self.path.set(c);
-                    self.next()
-                } else {
-                    None
+                dir
+            };
+            if dir == Direction::RightLeft {
+                let c = self.text.next().unwrap();
+                if !self.back {
+                    self.back = true;
                 }
+                self.temp.push(c);
+            } else if let Some(c) = self.temp.pop() {
+                let _ = self.path.set(c);
+            } else {
+                let c = self.text.next().unwrap();
+                let _ = self.path.set(c);
             }
+            self.next()
+        } else if let Some(c) = self.temp.pop() {
+            let _ = self.path.set(c);
+            self.next()
+        } else {
+            None
         }
     }
 }
@@ -500,13 +495,13 @@ pub fn monospace_font() -> Font<'static> {
     const FONTD: &[u8] = include_bytes!("font/droid/SansFallback.ttf");
 
     Font::new()
-        .add(FONTA)
+        .push(FONTA)
         .unwrap()
-        .add(FONTB)
+        .push(FONTB)
         .unwrap()
-        .add(FONTC)
+        .push(FONTC)
         .unwrap()
-        .add(FONTD)
+        .push(FONTD)
         .unwrap()
 }
 
@@ -519,13 +514,13 @@ pub fn normal_font() -> Font<'static> {
     const FONTD: &[u8] = include_bytes!("font/droid/SansFallback.ttf");
 
     Font::new()
-        .add(FONTA)
+        .push(FONTA)
         .unwrap()
-        .add(FONTB)
+        .push(FONTB)
         .unwrap()
-        .add(FONTC)
+        .push(FONTC)
         .unwrap()
-        .add(FONTD)
+        .push(FONTD)
         .unwrap()
 }
 
