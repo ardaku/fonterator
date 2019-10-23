@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://free.plopgrizzly.com/s
 ### Changed
 ### Fixed
 
+## [0.6.0] - Unreleased
+### Fixed
+- `dyn` Warnings
+- Clippy Warnings
+
+### Changed
+- `add()` on `Font` is renamed `push()`.
+- Updated dependencies
+
 ## [0.5.1] - 2019-08-10
 ### Fixed
 - Text being drawn below the bounding box instead of inside.
