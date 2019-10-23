@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://free.plopgrizzly.com/s
 ### Changed
 ### Fixed
 
-## [0.6.0] - 2019-10-08
+## [0.6.0] - Unreleased
 ### Fixed
 - `dyn` Warnings
 - Clippy Warnings
