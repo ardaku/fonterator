@@ -10,10 +10,11 @@ and this project adheres to [Semantic Versioning](https://free.plopgrizzly.com/s
 ### Changed
 ### Fixed
 
-## [0.6.0] - Unreleased
+## [0.6.0] - 2019-10-24
 ### Fixed
 - `dyn` Warnings
 - Clippy Warnings
+- No longer panics when character can't be found
 
 ### Changed
 - `add()` on `Font` is renamed `push()`.
