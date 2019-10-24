@@ -5,7 +5,7 @@
 
 [package]
 name = "fonterator"
-version = "0.5.0"
+version = "0.5.1"
 authors = [
 	"Jeron Aldaron Lau <jeronlau@plopgrizzly.com>"
 ]
@@ -32,11 +32,11 @@ all-features = true
 [dependencies]
 footile = "0.3" # { path = "../../fork/footile" } # "0.3"
 # unicode-width = "0.1"
-ttf-parser = "0.2" # For reading TTF/OTF files
+ttf-parser = "0.3" # For reading TTF/OTF files
 unicode-script = "0.3" # For calculating text direction.
 
 [dev-dependencies]
-svg = "0.5"
+svg = "0.6"
 footile = "0.3" # { path = "../../fork/footile" } # "0.3"
 png_pong = "0.0.2"
 
