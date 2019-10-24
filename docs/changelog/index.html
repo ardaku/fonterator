@@ -8,8 +8,19 @@ and this project adheres to <a href="https://free.plopgrizzly.com/semver/">Seman
 <h3><a href="#removed" aria-hidden="true" class="anchor" id="removed"></a><a href="changelog#removed">Removed</a></h3>
 <h3><a href="#changed" aria-hidden="true" class="anchor" id="changed"></a><a href="changelog#changed">Changed</a></h3>
 <h3><a href="#fixed" aria-hidden="true" class="anchor" id="fixed"></a><a href="changelog#fixed">Fixed</a></h3>
-<h2><a href="#051---2019-08-10" aria-hidden="true" class="anchor" id="051---2019-08-10"></a><a href="changelog#051---2019-08-10">[0.5.1] - 2019-08-10</a></h2>
+<h2><a href="#060---unreleased" aria-hidden="true" class="anchor" id="060---unreleased"></a><a href="changelog#060---unreleased">[0.6.0] - Unreleased</a></h2>
 <h3><a href="#fixed-1" aria-hidden="true" class="anchor" id="fixed-1"></a><a href="changelog#fixed">Fixed</a></h3>
+<ul>
+<li><code>dyn</code> Warnings</li>
+<li>Clippy Warnings</li>
+</ul>
+<h3><a href="#changed-1" aria-hidden="true" class="anchor" id="changed-1"></a><a href="changelog#changed">Changed</a></h3>
+<ul>
+<li><code>add()</code> on <code>Font</code> is renamed <code>push()</code>.</li>
+<li>Updated dependencies</li>
+</ul>
+<h2><a href="#051---2019-08-10" aria-hidden="true" class="anchor" id="051---2019-08-10"></a><a href="changelog#051---2019-08-10">[0.5.1] - 2019-08-10</a></h2>
+<h3><a href="#fixed-2" aria-hidden="true" class="anchor" id="fixed-2"></a><a href="changelog#fixed">Fixed</a></h3>
 <ul>
 <li>Text being drawn below the bounding box instead of inside.</li>
 </ul>
@@ -23,7 +34,7 @@ and this project adheres to <a href="https://free.plopgrizzly.com/semver/">Seman
 <li>Text wrapping (see <code>examples/main.rs</code> for example on how to use)</li>
 <li><code>#![forbid(unsafe_code)]</code></li>
 </ul>
-<h3><a href="#changed-1" aria-hidden="true" class="anchor" id="changed-1"></a><a href="changelog#changed">Changed</a></h3>
+<h3><a href="#changed-2" aria-hidden="true" class="anchor" id="changed-2"></a><a href="changelog#changed">Changed</a></h3>
 <ul>
 <li>Use <code>ttf-parser</code> crate to support more fonts.</li>
 <li>Use <code>monospace-font</code> &amp; <code>normal-font</code> features to enable functions <code>monospace_font()</code> and <code>normal_font()</code></li>
@@ -35,12 +46,12 @@ and this project adheres to <a href="https://free.plopgrizzly.com/semver/">Seman
 <li><code>multilingual_mono()</code> because it did bad typefacing.</li>
 </ul>
 <h2><a href="#042---2019-07-15" aria-hidden="true" class="anchor" id="042---2019-07-15"></a><a href="changelog#042---2019-07-15">[0.4.2] - 2019-07-15</a></h2>
-<h3><a href="#fixed-2" aria-hidden="true" class="anchor" id="fixed-2"></a><a href="changelog#fixed">Fixed</a></h3>
+<h3><a href="#fixed-3" aria-hidden="true" class="anchor" id="fixed-3"></a><a href="changelog#fixed">Fixed</a></h3>
 <ul>
 <li>Release mode renders correctly now.</li>
 </ul>
 <h2><a href="#041---2019-07-14" aria-hidden="true" class="anchor" id="041---2019-07-14"></a><a href="changelog#041---2019-07-14">[0.4.1] - 2019-07-14</a></h2>
-<h3><a href="#fixed-3" aria-hidden="true" class="anchor" id="fixed-3"></a><a href="changelog#fixed">Fixed</a></h3>
+<h3><a href="#fixed-4" aria-hidden="true" class="anchor" id="fixed-4"></a><a href="changelog#fixed">Fixed</a></h3>
 <ul>
 <li>Multi-lingual monospace not spacing correctly.</li>
 </ul>
@@ -50,13 +61,13 @@ and this project adheres to <a href="https://free.plopgrizzly.com/semver/">Seman
 <li>You can now use footile from fonterator with <code>use fonterator::footile;</code></li>
 <li>Method <code>xy()</code> on <code>PathIterator</code></li>
 </ul>
-<h3><a href="#changed-2" aria-hidden="true" class="anchor" id="changed-2"></a><a href="changelog#changed">Changed</a></h3>
+<h3><a href="#changed-3" aria-hidden="true" class="anchor" id="changed-3"></a><a href="changelog#changed">Changed</a></h3>
 <ul>
 <li>Upgrade to newer version of footile (<code>0.3</code>).</li>
 <li>Renamed <code>FontChain</code> to <code>FontGroup</code>.</li>
 <li><code>PathIterator</code> now iterates by mutable reference.</li>
 </ul>
-<h3><a href="#fixed-4" aria-hidden="true" class="anchor" id="fixed-4"></a><a href="changelog#fixed">Fixed</a></h3>
+<h3><a href="#fixed-5" aria-hidden="true" class="anchor" id="fixed-5"></a><a href="changelog#fixed">Fixed</a></h3>
 <ul>
 <li>Not all examples working.</li>
 </ul>
@@ -67,7 +78,7 @@ and this project adheres to <a href="https://free.plopgrizzly.com/semver/">Seman
 <li>Proper support for multi-lingual monospace with <code>FontChain::multilingual_mono()</code>.</li>
 </ul>
 <h2><a href="#021---2018-12-08" aria-hidden="true" class="anchor" id="021---2018-12-08"></a><a href="changelog#021---2018-12-08">[0.2.1] - 2018-12-08</a></h2>
-<h3><a href="#fixed-5" aria-hidden="true" class="anchor" id="fixed-5"></a><a href="changelog#fixed">Fixed</a></h3>
+<h3><a href="#fixed-6" aria-hidden="true" class="anchor" id="fixed-6"></a><a href="changelog#fixed">Fixed</a></h3>
 <ul>
 <li>Fix README.</li>
 </ul>
@@ -77,7 +88,7 @@ and this project adheres to <a href="https://free.plopgrizzly.com/semver/">Seman
 <li>Added vertical text layout support.</li>
 <li>Added right-to-left text layout support.</li>
 </ul>
-<h3><a href="#changed-3" aria-hidden="true" class="anchor" id="changed-3"></a><a href="changelog#changed">Changed</a></h3>
+<h3><a href="#changed-4" aria-hidden="true" class="anchor" id="changed-4"></a><a href="changelog#changed">Changed</a></h3>
 <ul>
 <li>Depend on Footile for <code>PathOp</code>s rather than afi.</li>
 <li>Simpler <code>render</code> API replaces old nested iterator stuff.</li>

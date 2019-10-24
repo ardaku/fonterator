@@ -168,6 +168,7 @@ impl<'a> Font<'a> {
                         index += 1;
                         if index == self.fonts.len() {
                             eprintln!("No Glyph for \"{}\" ({})", c, c as u32);
+                            index = 0;
                             break self.fonts[index]
                                 .none
                                 .0
@@ -340,7 +341,8 @@ impl<'a> CharPathIterator<'a> {
             -self.size.1 * selected_font.1,
         );
         let em_per_unit =
-            f32::from(selected_font.0.units_per_em().ok_or("em").unwrap());
+            f32::from(selected_font.0.units_per_em().ok_or("em").unwrap())
+                .recip();
         let h = selected_font.1 * self.size.1 / em_per_unit;
         self.offset = -self.size.1 + h;
         match selected_font.0.outline_glyph(glyph_id, self) {
