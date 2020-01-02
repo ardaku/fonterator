@@ -38,7 +38,7 @@ unicode-script = "0.3" # For calculating text direction.
 [dev-dependencies]
 svg = "0.6"
 footile = "0.3" # { path = "../../fork/footile" } # "0.3"
-png_pong = "0.0.2"
+png_pong = "0.1.0"
 
 [features]
 default = ["monospace-font"]
