@@ -2,7 +2,8 @@
 
 use fonterator as font; // For parsing font file.
 use footile::{FillRule, Plotter, Raster, Rgba8}; // For rendering font text.
-use png_pong::{EncoderBuilder, RasterBuilder}; // For saving PNG
+use png_pong::FrameEncoder; // For saving PNG
+use pix::RasterBuilder;
 
 const FONT_SIZE: f32 = 32.0;
 
@@ -128,10 +129,9 @@ fn main() {
     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
 
     // Save PNG
-    let raster = RasterBuilder::new().with_u8_buffer(512, 512, r.as_u8_slice());
+    let raster = RasterBuilder::<pix::Rgba8>::new().with_u8_buffer(512, 512, r.as_u8_slice());
     let mut out_data = Vec::new();
-    let mut encoder = EncoderBuilder::new();
-    let mut encoder = encoder.encode_rasters(&mut out_data);
-    encoder.add_frame(&raster, 0).expect("Failed to add frame");
+    let mut encoder = FrameEncoder::new(&mut out_data);
+    encoder.still(&raster).expect("Failed to add frame");
     std::fs::write("dir.png", out_data).expect("Failed to save image");
 }
