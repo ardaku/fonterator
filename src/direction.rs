@@ -20,10 +20,10 @@ pub(super) enum Direction {
 }
 
 pub(super) fn direction(c: char) -> Direction {
-    use unicode_script::tables::Script::*;
+    use unicode_script::{Script::*, UnicodeScript};
     use Direction::*;
 
-    match unicode_script::tables::get_script(c) {
+    match c.script() {
         Unknown => LeftRight,
         Ahom => LeftRight,
         Anatolian_Hieroglyphs => LeftRight,
@@ -156,5 +156,6 @@ pub(super) fn direction(c: char) -> Direction {
         Vai => LeftRight,
         Warang_Citi => LeftRight,
         Yi => LeftRight,
+        _ => LeftRight,
     }
 }
