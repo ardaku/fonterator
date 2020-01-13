@@ -33,7 +33,7 @@ all-features = true
 footile = "0.3" # { path = "../../fork/footile" } # "0.3"
 # unicode-width = "0.1"
 ttf-parser = "0.3" # For reading TTF/OTF files
-unicode-script = "0.4" # For calculating text direction.
+unicode-script = "0.5" # For calculating text direction.
 
 [dev-dependencies]
 svg = "0.6"
