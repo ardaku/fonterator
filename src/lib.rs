@@ -54,7 +54,7 @@
 //!     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
 //!
 //!     // Save PNG
-//!     let raster = RasterBuilder::<pix::Rgba8>::new()
+//!     let raster = RasterBuilder::<pix::SepSRgba8>::new()
 //!         .with_u8_buffer(512, 512, r.as_u8_slice());
 //!     let mut out_data = Vec::new();
 //!     let mut encoder = FrameEncoder::new(&mut out_data);

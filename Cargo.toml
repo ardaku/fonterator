@@ -38,8 +38,8 @@ unicode-script = "0.5" # For calculating text direction.
 [dev-dependencies]
 svg = "0.6"
 footile = "0.3" # { path = "../../fork/footile" } # "0.3"
-png_pong = "0.1.0"
-pix = "0.7"
+png_pong = { path = "../../lordaldaron/png_pong" } # "0.1.0"
+pix = "0.8"
 
 [features]
 default = ["monospace-font"]
