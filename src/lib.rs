@@ -123,13 +123,13 @@ impl<'a> Font<'a> {
     pub fn push<B: Into<&'a [u8]>>(
         mut self,
         none: B,
-    ) -> Result<Self, Box<dyn std::error::Error>> {
+    ) -> Option<Self> {
         let none = ttf::Font::from_data(none.into(), 0)?;
         let em_per_height = f32::from(none.height()).recip();
         let none = LangFont(none, em_per_height);
 
         self.fonts.push(StyledFont { none });
-        Ok(self)
+        Some(self)
     }
 
     /// Render some text.  Returns an iterator and how many characters were
@@ -152,28 +152,27 @@ impl<'a> Font<'a> {
 
         // First Pass: Get pixel length
         for (i, c) in text.char_indices() {
-            if c == ' ' {
-                last_space = i;
-            }
-            if c == '\n' {
-                left_over = Some(i);
-                break;
+            match c {
+                ' ' => last_space = i,
+                '\n' => {
+                    left_over = Some(i);
+                    break;
+                }
+                _ if c == BOLD => continue,
+                _ if c == ITALIC => continue,
+                _ if c == NONE => continue,
+                _ => {},
             }
 
             let mut index = 0;
             let glyph_id = loop {
                 match self.fonts[index].none.0.glyph_index(c) {
-                    Ok(v) => break v,
-                    Err(_e) => {
+                    Some(v) => break v,
+                    None => {
                         index += 1;
                         if index == self.fonts.len() {
-                            eprintln!("No Glyph for \"{}\" ({})", c, c as u32);
-                            index = 0;
-                            break self.fonts[index]
-                                .none
-                                .0
-                                .glyph_index('�')
-                                .unwrap();
+                            // eprintln!("No Glyph for \"{}\" ({})", c, c as u32);
+                            break self.fonts[0].none.0.glyph_index('�').unwrap();
                         }
                     }
                 }
@@ -182,9 +181,9 @@ impl<'a> Font<'a> {
             let selected_font = &self.fonts[index].none;
             let wh = (wh.0 * selected_font.1, -wh.1 * selected_font.1);
 
-            let advance = match selected_font.0.glyph_hor_metrics(glyph_id) {
-                Ok(v) => {
-                    (f32::from(v.advance)
+            let advance = match selected_font.0.glyph_hor_advance(glyph_id) {
+                Some(adv) => {
+                    (f32::from(adv)
                         + if let Some(last) = last {
                             selected_font
                                 .0
@@ -196,7 +195,7 @@ impl<'a> Font<'a> {
                         })
                         * wh.0
                 }
-                Err(_) => 0.0,
+                None => 0.0,
             };
 
             pixel_length += advance;
@@ -296,17 +295,17 @@ impl<'a> CharPathIterator<'a> {
         }
     }
 
-    fn set(&mut self, c: char) -> Result<(), ttf::Error> {
+    fn set(&mut self, c: char) {
         if c == BOLD {
             self.bold = true;
-            return Ok(());
+            return;
         } else if c == ITALIC {
             self.italic = true;
-            return Ok(());
+            return;
         } else if c == NONE {
             self.bold = false;
             self.italic = false;
-            return Ok(());
+            return;
         }
 
         if self.direction == Direction::CheckNext {
@@ -317,12 +316,12 @@ impl<'a> CharPathIterator<'a> {
         let mut index = 0;
         let glyph_id = loop {
             match self.font.fonts[index].none.0.glyph_index(c) {
-                Ok(v) => break v,
-                Err(e) => {
+                Some(v) => break v,
+                None => {
                     index += 1;
                     if index == self.font.fonts.len() {
-                        eprintln!("No Glyph for \"{}\" ({})", c, c as u32);
-                        return Err(e);
+                        // eprintln!("No Glyph for \"{}\" ({})", c, c as u32);
+                        break self.font.fonts[0].none.0.glyph_index('�').unwrap();
                     }
                 }
             }
@@ -345,26 +344,14 @@ impl<'a> CharPathIterator<'a> {
                 .recip();
         let h = selected_font.1 * self.size.1 / em_per_unit;
         self.offset = -self.size.1 + h;
-        match selected_font.0.outline_glyph(glyph_id, self) {
-            Ok(_v) => {}
-            Err(ttf::Error::NoOutline) => { /* whitespace */ }
-            Err(ttf::Error::NoGlyph) => {
-                /* unknown glyph */
-                let id = self.font.fonts[0].none.0.glyph_index('�')?;
-                selected_font.0.outline_glyph(id, self).unwrap();
-            }
-            Err(e) => {
-                eprintln!("Warning (glyph {}): {}.", glyph_id.0, e);
-                return Err(e);
-            }
-        };
+        selected_font.0.outline_glyph(glyph_id, self);
 
         if self.vertical {
             self.xy.1 += self.size.1;
         } else {
-            let advance = match selected_font.0.glyph_hor_metrics(glyph_id) {
-                Ok(v) => {
-                    (f32::from(v.advance)
+            let advance = match selected_font.0.glyph_hor_advance(glyph_id) {
+                Some(adv) => {
+                    (f32::from(adv)
                         + if let Some(last) = self.last {
                             selected_font
                                 .0
@@ -376,7 +363,7 @@ impl<'a> CharPathIterator<'a> {
                         })
                         * self.wh.0
                 }
-                Err(_) => 0.0,
+                None => 0.0,
             };
             self.xy.0 += advance;
         }
@@ -384,8 +371,6 @@ impl<'a> CharPathIterator<'a> {
         self.path.reverse();
 
         self.last = Some(glyph_id);
-
-        Ok(())
     }
 }
 
