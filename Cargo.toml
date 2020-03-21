@@ -32,8 +32,12 @@ all-features = true
 [dependencies]
 footile = "0.3" # { path = "../../fork/footile" } # "0.3"
 # unicode-width = "0.1"
-ttf-parser = "0.5" # For reading TTF/OTF files
 unicode-script = "0.5" # For calculating text direction.
+
+# For reading TTF/OTF files
+[dependencies.ttf-parser]
+version = "0.5"
+default-features = false # Don't depend on log crate
 
 [dev-dependencies]
 svg = "0.6"
