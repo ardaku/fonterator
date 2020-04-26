@@ -4,9 +4,9 @@
 //! # Simple Example
 //! ```rust
 //! use fonterator as font; // For parsing font file.
-//! use footile::{FillRule, Plotter, Raster, Rgba8}; // For rendering font text.
+//! use footile::{FillRule, Plotter}; // For rendering font text.
 //! use png_pong::FrameEncoder; // For saving PNG
-//! use pix::RasterBuilder;
+//! use pix::{Raster, rgb::{Rgba8p, SRgba8}, ops::{SrcOver}};
 //!
 //! const FONT_SIZE: f32 = 32.0;
 //!
@@ -21,7 +21,7 @@
 //!
 //!     // Init rendering.
 //!     let mut p = Plotter::new(512, 512);
-//!     let mut r = Raster::new(p.width(), p.height());
+//!     let mut r = Raster::with_clear(p.width(), p.height());
 //!
 //!     // Render English Left Aligned.
 //!     let path = font.render(
@@ -31,7 +31,13 @@
 //!         font::TextAlign::Left
 //!     ).0;
 //!     let path: Vec<font::PathOp> = path.collect();
-//!     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+//!     r.composite_matte(
+//!         (0, 0, 512, 512),
+//!         p.fill(&path, FillRule::NonZero),
+//!         (),
+//!         Rgba8p::new(0, 0, 0, 255),
+//!         SrcOver,
+//!     );
 //!
 //!     // Render Korean Vertically
 //!     let path = font.render(
@@ -41,7 +47,13 @@
 //!         font::TextAlign::Vertical
 //!     ).0;
 //!     let path: Vec<font::PathOp> = path.collect();
-//!     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+//!     r.composite_matte(
+//!         (0, 0, 512, 512),
+//!         p.fill(&path, FillRule::NonZero),
+//!         (),
+//!         Rgba8p::new(0, 0, 0, 255),
+//!         SrcOver,
+//!     );
 //!
 //!     // Render Japanese Vertically
 //!     let path = font.render(
@@ -51,11 +63,16 @@
 //!         font::TextAlign::Vertical
 //!     ).0;
 //!     let path: Vec<font::PathOp> = path.collect();
-//!     r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+//!     r.composite_matte(
+//!         (0, 0, 512, 512),
+//!         p.fill(&path, FillRule::NonZero),
+//!         (),
+//!         Rgba8p::new(0, 0, 0, 255),
+//!         SrcOver,
+//!     );
 //!
 //!     // Save PNG
-//!     let raster = RasterBuilder::<pix::SepSRgba8>::new()
-//!         .with_u8_buffer(512, 512, r.as_u8_slice());
+//!     let raster = Raster::<SRgba8>::with_raster(&r);
 //!     let mut out_data = Vec::new();
 //!     let mut encoder = FrameEncoder::new(&mut out_data);
 //!     encoder.still(&raster).expect("Failed to add frame");
@@ -120,10 +137,7 @@ impl<'a> Font<'a> {
     }
 
     /// Add a TTF or OTF font's glyphs to this `Font`.
-    pub fn push<B: Into<&'a [u8]>>(
-        mut self,
-        none: B,
-    ) -> Option<Self> {
+    pub fn push<B: Into<&'a [u8]>>(mut self, none: B) -> Option<Self> {
         let none = ttf::Font::from_data(none.into(), 0)?;
         let em_per_height = f32::from(none.height()).recip();
         let none = LangFont(none, em_per_height);
@@ -161,7 +175,7 @@ impl<'a> Font<'a> {
                 _ if c == BOLD => continue,
                 _ if c == ITALIC => continue,
                 _ if c == NONE => continue,
-                _ => {},
+                _ => {}
             }
 
             let mut index = 0;
@@ -173,7 +187,11 @@ impl<'a> Font<'a> {
                         if index == self.fonts.len() {
                             // eprintln!("No Glyph for \"{}\" ({})", c, c as u32);
                             index = 0;
-                            break self.fonts[0].none.0.glyph_index('�').unwrap();
+                            break self.fonts[0]
+                                .none
+                                .0
+                                .glyph_index('�')
+                                .unwrap();
                         }
                     }
                 }
@@ -323,7 +341,11 @@ impl<'a> CharPathIterator<'a> {
                     if index == self.font.fonts.len() {
                         // eprintln!("No Glyph for \"{}\" ({})", c, c as u32);
                         index = 0;
-                        break self.font.fonts[0].none.0.glyph_index('�').unwrap();
+                        break self.font.fonts[0]
+                            .none
+                            .0
+                            .glyph_index('�')
+                            .unwrap();
                     }
                 }
             }

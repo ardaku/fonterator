@@ -1,7 +1,7 @@
-use pix::Raster;
-use pix::ops::SrcOver;
-use pix::rgb::{SRgba8, Rgba8p};
 use footile::{FillRule, Plotter};
+use pix::ops::SrcOver;
+use pix::rgb::{Rgba8p, SRgba8};
+use pix::Raster;
 use png_pong::FrameEncoder; // For saving PNG
 
 fn main() {
@@ -25,7 +25,8 @@ fn main() {
         );
         println!("{} {}", begin, begin + l);
         let path: Vec<footile::PathOp> = path.collect();
-        r.composite_matte((0, 0, 2048, 2048), 
+        r.composite_matte(
+            (0, 0, 2048, 2048),
             p.fill(&path, FillRule::NonZero),
             (),
             Rgba8p::new(0, 0, 0, 255), /*color*/

@@ -2,10 +2,10 @@
 
 use fonterator as font; // For parsing font file.
 use footile::{FillRule, Plotter}; // For rendering font text.
-use png_pong::FrameEncoder; // For saving PNG
-use pix::Raster;
-use pix::rgb::{Rgba8p, SRgba8};
 use pix::ops::SrcOver;
+use pix::rgb::{Rgba8p, SRgba8};
+use pix::Raster;
+use png_pong::FrameEncoder; // For saving PNG
 
 const FONT_SIZE: f32 = 32.0;
 
@@ -16,12 +16,14 @@ fn main() {
     let nepali = "फन्टको साथ रास्टर पाठ"; // LEFT-RIGHT
     let arabic = "النقطية النص مع الخط"; // RIGHT-LEFT
     let hebrew = "טקסט רסטר עם גופן"; // RIGHT-LEFT
-                                      // Note that any direction works for these languages, but traditionally
-                                      // up-down, right-left.  Commonly LEFT-RIGHT
+
+    // Note that any direction works for these languages, but traditionally
+    // up-down, right-left.  Commonly LEFT-RIGHT
     let korean = "글꼴로 래스터 텍스트 사용"; // UP-DOWN, RIGHT-LEFT
     let japanese = "フォント 付きラス タテキス ト"; // UP-DOWN, RIGHT-LEFT
-                                                    //
-    let _hanunuo = "ᜱᜨᜳᜨᜳᜢ"; // LEFT-RIGHT, DOWN-UP
+
+    // LEFT-RIGHT, DOWN-UP
+    let _hanunuo = "ᜱᜨᜳᜨᜳᜢ";
 
     // Init font, and paths.
     let font = font::monospace_font();
@@ -40,7 +42,13 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
+    r.composite_matte(
+        (0, 0, 512, 512),
+        p.fill(&path, FillRule::NonZero),
+        (),
+        Rgba8p::new(0, 0, 0, 255),
+        SrcOver,
+    );
 
     let path = font
         .render(
@@ -51,7 +59,13 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
+    r.composite_matte(
+        (0, 0, 512, 512),
+        p.fill(&path, FillRule::NonZero),
+        (),
+        Rgba8p::new(0, 0, 0, 255),
+        SrcOver,
+    );
 
     let path = font
         .render(
@@ -62,7 +76,13 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
+    r.composite_matte(
+        (0, 0, 512, 512),
+        p.fill(&path, FillRule::NonZero),
+        (),
+        Rgba8p::new(0, 0, 0, 255),
+        SrcOver,
+    );
 
     let path = font
         .render(
@@ -73,7 +93,13 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
+    r.composite_matte(
+        (0, 0, 512, 512),
+        p.fill(&path, FillRule::NonZero),
+        (),
+        Rgba8p::new(0, 0, 0, 255),
+        SrcOver,
+    );
 
     let path = font
         .render(
@@ -84,7 +110,13 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
+    r.composite_matte(
+        (0, 0, 512, 512),
+        p.fill(&path, FillRule::NonZero),
+        (),
+        Rgba8p::new(0, 0, 0, 255),
+        SrcOver,
+    );
 
     let path = font
         .render(
@@ -95,7 +127,13 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
+    r.composite_matte(
+        (0, 0, 512, 512),
+        p.fill(&path, FillRule::NonZero),
+        (),
+        Rgba8p::new(0, 0, 0, 255),
+        SrcOver,
+    );
 
     let path = font
         .render(
@@ -106,7 +144,13 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
+    r.composite_matte(
+        (0, 0, 512, 512),
+        p.fill(&path, FillRule::NonZero),
+        (),
+        Rgba8p::new(0, 0, 0, 255),
+        SrcOver,
+    );
 
     let path = font
         .render(
@@ -117,7 +161,13 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
+    r.composite_matte(
+        (0, 0, 512, 512),
+        p.fill(&path, FillRule::NonZero),
+        (),
+        Rgba8p::new(0, 0, 0, 255),
+        SrcOver,
+    );
 
     let path = font
         .render(
@@ -128,7 +178,13 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
+    r.composite_matte(
+        (0, 0, 512, 512),
+        p.fill(&path, FillRule::NonZero),
+        (),
+        Rgba8p::new(0, 0, 0, 255),
+        SrcOver,
+    );
 
     // Save PNG
     let raster = Raster::<SRgba8>::with_raster(&r);
