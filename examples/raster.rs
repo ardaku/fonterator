@@ -1,4 +1,8 @@
-use footile::{FillRule, Plotter, Raster, Rgba8};
+use pix::Raster;
+use pix::ops::SrcOver;
+use pix::rgb::{SRgba8, Rgba8p};
+use footile::{FillRule, Plotter};
+use png_pong::FrameEncoder; // For saving PNG
 
 const FONT_SIZE: f32 = 200.0;
 
@@ -10,7 +14,7 @@ fn main() {
 
     // Init rendering
     let mut p = Plotter::new(2048, 2048);
-    let mut r = Raster::new(p.width(), p.height());
+    let mut r = Raster::with_clear(p.width(), p.height());
 
     let path = font
         .render(
@@ -21,7 +25,13 @@ fn main() {
         )
         .0;
     let path: Vec<footile::PathOp> = path.collect();
-    r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+    r.composite_matte((0, 0, 2048, 2048), 
+        p.fill(&path, FillRule::NonZero),
+        (),
+        Rgba8p::new(0, 0, 0, 255), /*color*/
+        SrcOver,
+    );
+
     let path = font
         .render(
             STR,
@@ -31,6 +41,17 @@ fn main() {
         )
         .0;
     let path: Vec<footile::PathOp> = path.collect();
-    r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
-    r.write_png("raster.png").unwrap();
+    r.composite_matte((0, 0, 2048, 2048), 
+        p.fill(&path, FillRule::NonZero),
+        (),
+        Rgba8p::new(0, 0, 0, 255), /*color*/
+        SrcOver,
+    );
+
+    // Save PNG
+    let raster = Raster::<SRgba8>::with_raster(&r);
+    let mut out_data = Vec::new();
+    let mut encoder = FrameEncoder::new(&mut out_data);
+    encoder.still(&raster).expect("Failed to add frame");
+    std::fs::write("raster.png", out_data).expect("Failed to save image");
 }

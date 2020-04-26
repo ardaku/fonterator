@@ -172,6 +172,7 @@ impl<'a> Font<'a> {
                         index += 1;
                         if index == self.fonts.len() {
                             // eprintln!("No Glyph for \"{}\" ({})", c, c as u32);
+                            index = 0;
                             break self.fonts[0].none.0.glyph_index('�').unwrap();
                         }
                     }
@@ -321,6 +322,7 @@ impl<'a> CharPathIterator<'a> {
                     index += 1;
                     if index == self.font.fonts.len() {
                         // eprintln!("No Glyph for \"{}\" ({})", c, c as u32);
+                        index = 0;
                         break self.font.fonts[0].none.0.glyph_index('�').unwrap();
                     }
                 }

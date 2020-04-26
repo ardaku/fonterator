@@ -1,11 +1,11 @@
-# Copyright Jeron Aldaron Lau 2018-2019.
+# Copyright Jeron Aldaron Lau 2018-2020.
 #
 # Dual-licensed under either the MIT License or the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 
 [package]
 name = "fonterator"
-version = "0.6.0"
+version = "0.7.0"
 authors = [
 	"Jeron Aldaron Lau <jeronlau@plopgrizzly.com>"
 ]
@@ -30,7 +30,7 @@ maintenance = { status = "actively-developed" }
 all-features = true
 
 [dependencies]
-footile = "0.3" # { path = "../../fork/footile" } # "0.3"
+footile = "0.4"
 # unicode-width = "0.1"
 unicode-script = "0.5" # For calculating text direction.
 
@@ -41,9 +41,8 @@ default-features = false # Don't depend on log crate
 
 [dev-dependencies]
 svg = "0.6"
-footile = "0.3" # { path = "../../fork/footile" } # "0.3"
-png_pong = { path = "../../lordaldaron/png_pong" } # "0.1.0"
-pix = "0.8"
+png_pong = "0.4"
+pix = "0.12"
 
 [features]
 default = ["monospace-font"]

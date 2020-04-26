@@ -1,9 +1,11 @@
 //! This tests writing directions for different languages.
 
 use fonterator as font; // For parsing font file.
-use footile::{FillRule, Plotter, Raster, Rgba8}; // For rendering font text.
+use footile::{FillRule, Plotter}; // For rendering font text.
 use png_pong::FrameEncoder; // For saving PNG
-use pix::RasterBuilder;
+use pix::Raster;
+use pix::rgb::{Rgba8p, SRgba8};
+use pix::ops::SrcOver;
 
 const FONT_SIZE: f32 = 32.0;
 
@@ -26,7 +28,7 @@ fn main() {
 
     // Init rendering.
     let mut p = Plotter::new(512, 512);
-    let mut r = Raster::new(p.width(), p.height());
+    let mut r = Raster::with_clear(p.width(), p.height());
 
     // Render paths.
     let path = font
@@ -38,7 +40,7 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
 
     let path = font
         .render(
@@ -49,7 +51,7 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
 
     let path = font
         .render(
@@ -60,7 +62,7 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
 
     let path = font
         .render(
@@ -71,7 +73,7 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
 
     let path = font
         .render(
@@ -82,7 +84,7 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
 
     let path = font
         .render(
@@ -93,7 +95,7 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
 
     let path = font
         .render(
@@ -104,7 +106,7 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
 
     let path = font
         .render(
@@ -115,7 +117,7 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
 
     let path = font
         .render(
@@ -126,10 +128,10 @@ fn main() {
         )
         .0;
     let path: Vec<font::PathOp> = path.collect();
-    r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
+    r.composite_matte((0, 0, 512, 512), p.fill(&path, FillRule::NonZero), (), Rgba8p::new(0, 0, 0, 255), SrcOver);
 
     // Save PNG
-    let raster = RasterBuilder::<pix::SepSRgba8>::new().with_u8_buffer(512, 512, r.as_u8_slice());
+    let raster = Raster::<SRgba8>::with_raster(&r);
     let mut out_data = Vec::new();
     let mut encoder = FrameEncoder::new(&mut out_data);
     encoder.still(&raster).expect("Failed to add frame");

@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://free.plopgrizzly.com/s
 ### Changed
 ### Fixed
 
+## [0.7.0] - Unreleased
+### Changed
+- Updated to footile 0.4
+
+### Fixed
+- Unknown unicode character crashing the program with a panic
+
 ## [0.6.0] - 2019-10-24
 ### Fixed
 - `dyn` Warnings
