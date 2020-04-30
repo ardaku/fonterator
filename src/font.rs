@@ -400,14 +400,14 @@ impl Iterator for TextPathIterator<'_> {
                 }
                 self.temp.push(c);
             } else if let Some(c) = self.temp.pop() {
-                let _ = self.path.set(c);
+                self.path.set(c);
             } else {
                 let c = self.text.next().unwrap();
-                let _ = self.path.set(c);
+                self.path.set(c);
             }
             self.next()
         } else if let Some(c) = self.temp.pop() {
-            let _ = self.path.set(c);
+            self.path.set(c);
             self.next()
         } else {
             None
