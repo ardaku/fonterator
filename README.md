@@ -18,7 +18,7 @@ pass right into footile.
 - Can Align text left/center/right/vertical
 - Line Wrapping
 
-### Goals
+### Todo
 - [Arabic and other script text shaping](https://github.com/plopgrizzly/fonterator/issues/3)
 - Better interoperability for monospace when mixing scripts.
 
@@ -139,10 +139,10 @@ to facilitate upgrading this crate as a dependency.
 Licensed under either of
  - Apache License, Version 2.0,
    ([LICENSE-APACHE](https://github.com/libcala/fonterator/blob/master/LICENSE-APACHE) or
-   https://www.apache.org/licenses/LICENSE-2.0)
+   [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0))
  - Zlib License,
    ([LICENSE-ZLIB](https://github.com/libcala/fonterator/blob/master/LICENSE-ZLIB) or
-   https://opensource.org/licenses/Zlib)
+   [https://opensource.org/licenses/Zlib](https://opensource.org/licenses/Zlib))
 
 at your option.
 
@@ -153,13 +153,14 @@ dual licensed as above, without any additional terms or conditions.
 
 Contributors are always welcome (thank you for being interested!), whether it
 be a bug report, bug fix, feature request, feature implementation or whatever.
-Don't be shy about getting involved.  I always make time to fix bugs, so
-usually a patched version of the library will be out a few days after a report.
+Don't be shy about getting involved.  I always make time to fix bugs, so usually
+a patched version of the library will be out a few days after a report.
 Features requests will not complete as fast.  If you have any questions, design
 critques, or want me to find you something to work on based on your skill level,
-you can email me at jeronlau@plopgrizzly.com.  Otherwise,
+you can email me at [jeronlau@plopgrizzly.com](mailto:jeronlau@plopgrizzly.com).
+Otherwise,
 [here's a link to the issues on GitHub](https://github.com/libcala/fonterator/issues).
 Before contributing, check out the
 [contribution guidelines](https://github.com/libcala/fonterator/blob/master/CONTRIBUTING.md),
-and, as always, make sure to always follow the
+and, as always, make sure to follow the
 [code of conduct](https://github.com/libcala/fonterator/blob/master/CODE_OF_CONDUCT.md).
