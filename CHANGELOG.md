@@ -4,9 +4,10 @@ All notable changes to `fonterator` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://jeronlau.tk/semver/).
 
-## [0.7.0] - Unreleased
+## [0.7.0] - 2020-04-30
 ### Changed
 - Updated to footile 0.4
+- monospace-font feature is no longer enabled by default.
 
 ### Fixed
 - Unknown unicode character crashing the program with a panic
