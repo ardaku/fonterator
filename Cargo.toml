@@ -49,18 +49,22 @@ default-target = "x86_64-unknown-linux-gnu"
 
 [[example]]
 name = "directions"
+path = "examples/directions.rs"
 required-features = ["monospace-font"]
 
 [[example]]
 name = "image"
+path = "examples/image.rs"
 required-features = ["monospace-font"]
 
 [[example]]
 name = "main"
+path = "examples/main.rs"
 required-features = ["monospace-font"]
 
 [[example]]
 name = "raster"
+path = "examples/raster.rs"
 required-features = ["monospace-font"]
 
 [features]
