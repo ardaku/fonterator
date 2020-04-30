@@ -11,6 +11,7 @@ use footile::PathOp;
 use crate::direction::{direction, Direction};
 
 /// Text alignment.
+#[derive(Copy, Clone, Debug)]
 pub enum TextAlign {
     /// Align text to the left.
     Left,
@@ -31,15 +32,17 @@ pub const BOLD: char = '\x02'; // Start of Text
 /// Italic
 pub const ITALIC: char = '\x03'; // End of Text
 
+#[derive(Debug)]
 struct LangFont<'a>(ttf_parser::Font<'a>, f32);
 
+#[derive(Debug)]
 struct StyledFont<'a> {
     // Required
     none: LangFont<'a>,
 }
 
 /// A collection of TTF/OTF fonts used as a single font.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Font<'a> {
     fonts: Vec<StyledFont<'a>>,
 }
@@ -352,7 +355,7 @@ impl ttf_parser::OutlineBuilder for CharPathIterator<'_> {
     }
 }
 
-impl<'a> Iterator for CharPathIterator<'a> {
+impl Iterator for CharPathIterator<'_> {
     type Item = PathOp;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -361,6 +364,7 @@ impl<'a> Iterator for CharPathIterator<'a> {
 }
 
 /// Iterator that generates path from characters.
+#[allow(missing_debug_implementations)]
 pub struct TextPathIterator<'a> {
     // The text that we're parsing.
     text: std::iter::Peekable<std::str::Chars<'a>>,
@@ -372,7 +376,7 @@ pub struct TextPathIterator<'a> {
     path: CharPathIterator<'a>,
 }
 
-impl<'a> Iterator for TextPathIterator<'a> {
+impl Iterator for TextPathIterator<'_> {
     type Item = PathOp;
 
     fn next(&mut self) -> Option<PathOp> {
