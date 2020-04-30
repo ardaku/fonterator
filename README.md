@@ -1,16 +1,50 @@
-# Fonterator
+# fonterator
 
-[![docs.rs](https://docs.rs/fonterator/badge.svg)](https://docs.rs/fonterator) [![build status](https://api.travis-ci.com/libcala/fonterator.svg?branch=master)](https://travis-ci.com/libcala/fonterator) [![crates.io](https://img.shields.io/crates/v/fonterator.svg)](https://crates.io/crates/fonterator) [![discord](https://img.shields.io/badge/discord-Cala%20Project-green.svg)](https://discord.gg/nXwF59K)
+#### Load fonts as vector graphics in pure Rust with advanced text layout.
 
-[About](https://libcala.github.io/fonterator) | [Source](https://github.com/libcala/fonterator) | [Changelog](https://libcala.github.io/fonterator/changelog) | [Cala Blog](https://libcala.github.io)
+[![Build Status](https://api.travis-ci.org/libcala/fonterator.svg?branch=master)](https://travis-ci.org/libcala/fonterator)
+[![Docs](https://docs.rs/fonterator/badge.svg)](https://docs.rs/fonterator)
+[![crates.io](https://img.shields.io/crates/v/fonterator.svg)](https://crates.io/crates/fonterator)
 
-Load fonts as vector graphics in pure Rust with advanced text layout.  When you want to render text, fonterator gives you an iterator over [footile](https://crates.io/crates/footile) `PathOp`s, which you can easily pass right into footile.
+When you want to render text, fonterator gives you an iterator over
+[footile](https://crates.io/crates/footile) `PathOp`s, which you can easily
+pass right into footile.
 
-# Simple Example
+- Loads TTF/OTF fonts and font collections.
+- Automatic kerning and font layout.
+- Horizontal and vertical text layout.
+- Left-to-right and right-to-left text layout.
+- Uses fallback fonts if a character is not available from one font.
+- Can Align text left/center/right/vertical
+- Line Wrapping
+
+### Goals
+- [Arabic and other script text shaping](https://github.com/plopgrizzly/fonterator/issues/3)
+- Better interoperability for monospace when mixing scripts.
+
+## Table of Contents
+- [Getting Started](#getting-started)
+   - [Example](#example)
+   - [API](#api)
+   - [Features](#features)
+- [Upgrade](#upgrade)
+- [License](#license)
+   - [Contribution](#contribution)
+
+## Getting Started
+Add the following to your `Cargo.toml`.
+
+```toml
+[dependencies]
+fonterator = "0.7"
+```
+
+### Example
 ```rust
 use fonterator as font; // For parsing font file.
-use footile::{FillRule, Plotter, Raster, Rgba8}; // For rendering font text.
-use png_pong::{RasterBuilder, EncoderBuilder}; // For saving PNG
+use footile::{FillRule, Plotter, PathOp}; // For rendering font text.
+use png_pong::FrameEncoder; // For saving PNG
+use pix::{Raster, rgb::{Rgba8p, SRgba8}, ops::{SrcOver}};
 
 const FONT_SIZE: f32 = 32.0;
 
@@ -25,7 +59,7 @@ fn main() {
 
     // Init rendering.
     let mut p = Plotter::new(512, 512);
-    let mut r = Raster::new(p.width(), p.height());
+    let mut r = Raster::with_clear(p.width(), p.height());
 
     // Render English Left Aligned.
     let path = font.render(
@@ -33,9 +67,15 @@ fn main() {
         (64.0, 0.0, 512.0 - 64.0, 512.0 - FONT_SIZE),
         (FONT_SIZE, FONT_SIZE),
         font::TextAlign::Left
+    ).0;
+    let path: Vec<PathOp> = path.collect();
+    r.composite_matte(
+        (0, 0, 512, 512),
+        p.fill(&path, FillRule::NonZero),
+        (),
+        Rgba8p::new(0, 0, 0, 255),
+        SrcOver,
     );
-    let path: Vec<font::PathOp> = path.collect();
-    r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
 
     // Render Korean Vertically
     let path = font.render(
@@ -43,9 +83,15 @@ fn main() {
         (0.0, 0.0, 512.0, 512.0 - 32.0 * 7.0),
         (FONT_SIZE, FONT_SIZE),
         font::TextAlign::Vertical
+    ).0;
+    let path: Vec<PathOp> = path.collect();
+    r.composite_matte(
+        (0, 0, 512, 512),
+        p.fill(&path, FillRule::NonZero),
+        (),
+        Rgba8p::new(0, 0, 0, 255),
+        SrcOver,
     );
-    let path: Vec<font::PathOp> = path.collect();
-    r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
 
     // Render Japanese Vertically
     let path = font.render(
@@ -53,46 +99,67 @@ fn main() {
         (32.0, 0.0, 512.0, 512.0 - 32.0 * 7.0),
         (FONT_SIZE, FONT_SIZE),
         font::TextAlign::Vertical
+    ).0;
+    let path: Vec<PathOp> = path.collect();
+    r.composite_matte(
+        (0, 0, 512, 512),
+        p.fill(&path, FillRule::NonZero),
+        (),
+        Rgba8p::new(0, 0, 0, 255),
+        SrcOver,
     );
-    let path: Vec<font::PathOp> = path.collect();
-    r.over(p.fill(&path, FillRule::NonZero), Rgba8::rgb(0, 0, 0));
 
     // Save PNG
-    let raster = RasterBuilder::new()
-        .with_u8_buffer(512, 512, r.as_u8_slice());
+    let raster = Raster::<SRgba8>::with_raster(&r);
     let mut out_data = Vec::new();
-    let mut encoder = EncoderBuilder::new();
-    let mut encoder = encoder.encode_rasters(&mut out_data);
-    encoder.add_frame(&raster, 0).expect("Failed to add frame");
+    let mut encoder = FrameEncoder::new(&mut out_data);
+    encoder.still(&raster).expect("Failed to add frame");
     std::fs::write("out.png", out_data).expect("Failed to save image");
 }
 ```
 
-## Features
-- Load TTF/OTF fonts and font collections.
-- Automatic kerning and font layout.
-- Horizontal and vertical text layout.
-- Left-to-right and right-to-left text layout.
-- Use fallback fonts if a character is not available from one font.
-- Align text left/center/right/vertical
-- Line Wrapping
+### API
+API documentation can be found on [docs.rs](https://docs.rs/fonterator).
 
-## TODO
-- [Arabic and other script text shaping](https://github.com/plopgrizzly/fonterator/issues/3)
-- Better interoperability for monospace when mixing scripts.
+### Features
+#### `monospace-font`
+Embeds a monospace font accessible with the `monospace_font()` public API in
+the root of the crate.
 
-# Contributing
-Contributors are always welcome!  Whether it is a bug report, bug fix, feature request, feature implementation or whatever.  Don't be shy about getting involved.  I always make time to fix bugs, so usually a patched version of the library will be out soon after a report.  Features take me longer, though.  I'll also always listen to any design critiques you have.  If you have any questions you can email me at jeronlau@plopgrizzly.com.  Otherwise, [here's a link to the issues on GitHub](https://github.com/libcala/fonterator/issues).
+#### `normal-font`
+Embeds a variable-width font accessible with the `normal_font()` public API in
+the root of the crate.
 
-And, as always, make sure to always follow the [code of conduct](https://github.com/libcala/fonterator/blob/master/CODEOFCONDUCT.md).  Happy coding!
+## Upgrade
+You can use the
+[changelog](https://github.com/libcala/fonterator/blob/master/CHANGELOG.md)
+to facilitate upgrading this crate as a dependency.
 
-# License
-This repository is licensed under either of the following:
-
-- MIT License (MIT) - See accompanying file [LICENSE_MIT.txt](https://github.com/libcala/fonterator/blob/master/LICENSE_MIT.txt) or copy at https://opensource.org/licenses/MIT
-- Boost Software License (BSL-1.0) - See accompanying file [LICENSE_BSL.txt](https://github.com/libcala/fonterator/blob/master/LICENSE_BSL.txt) or copy at https://www.boost.org/LICENSE_1_0.txt
+## License
+Licensed under either of
+ - Apache License, Version 2.0,
+   ([LICENSE-APACHE](https://github.com/libcala/fonterator/blob/master/LICENSE-APACHE) or
+   https://www.apache.org/licenses/LICENSE-2.0)
+ - Zlib License,
+   ([LICENSE-ZLIB](https://github.com/libcala/fonterator/blob/master/LICENSE-ZLIB) or
+   https://opensource.org/licenses/Zlib)
 
 at your option.
 
-## Contribution Licensing
-Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you shall be dual licensed as above without any additional terms or conditions.
+### Contribution
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+dual licensed as above, without any additional terms or conditions.
+
+Contributors are always welcome (thank you for being interested!), whether it
+be a bug report, bug fix, feature request, feature implementation or whatever.
+Don't be shy about getting involved.  I always make time to fix bugs, so
+usually a patched version of the library will be out a few days after a report.
+Features requests will not complete as fast.  If you have any questions, design
+critques, or want me to find you something to work on based on your skill level,
+you can email me at jeronlau@plopgrizzly.com.  Otherwise,
+[here's a link to the issues on GitHub](https://github.com/libcala/fonterator/issues).
+Before contributing, check out the
+[contribution guidelines](https://github.com/libcala/fonterator/blob/master/CONTRIBUTING.md),
+and, as always, make sure to always follow the
+[code of conduct](https://github.com/libcala/fonterator/blob/master/CODE_OF_CONDUCT.md).

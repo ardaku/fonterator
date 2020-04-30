@@ -1,8 +1,6 @@
-**/*.png
-**/*.svg
-*.png
-*.svg
-/target
-**/*.rs.bk
-Cargo.lock
-/ignore
+/**/*.png
+/**/*.svg
+/target/
+/.cargo-ok
+/Cargo.lock
+/**/*.rs.bk

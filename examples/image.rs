@@ -1,4 +1,4 @@
-use fonterator::PathOp;
+use footile::PathOp;
 use svg::{
     node::element::{path::Data, Group, Path, Style},
     Document, Node,

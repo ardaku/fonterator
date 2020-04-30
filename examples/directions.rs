@@ -1,7 +1,7 @@
 //! This tests writing directions for different languages.
 
 use fonterator as font; // For parsing font file.
-use footile::{FillRule, Plotter}; // For rendering font text.
+use footile::{FillRule, Plotter, PathOp}; // For rendering font text.
 use pix::ops::SrcOver;
 use pix::rgb::{Rgba8p, SRgba8};
 use pix::Raster;
@@ -41,7 +41,7 @@ fn main() {
             font::TextAlign::Left,
         )
         .0;
-    let path: Vec<font::PathOp> = path.collect();
+    let path: Vec<PathOp> = path.collect();
     r.composite_matte(
         (0, 0, 512, 512),
         p.fill(&path, FillRule::NonZero),
@@ -58,7 +58,7 @@ fn main() {
             font::TextAlign::Left,
         )
         .0;
-    let path: Vec<font::PathOp> = path.collect();
+    let path: Vec<PathOp> = path.collect();
     r.composite_matte(
         (0, 0, 512, 512),
         p.fill(&path, FillRule::NonZero),
@@ -75,7 +75,7 @@ fn main() {
             font::TextAlign::Center,
         )
         .0;
-    let path: Vec<font::PathOp> = path.collect();
+    let path: Vec<PathOp> = path.collect();
     r.composite_matte(
         (0, 0, 512, 512),
         p.fill(&path, FillRule::NonZero),
@@ -92,7 +92,7 @@ fn main() {
             font::TextAlign::Right,
         )
         .0;
-    let path: Vec<font::PathOp> = path.collect();
+    let path: Vec<PathOp> = path.collect();
     r.composite_matte(
         (0, 0, 512, 512),
         p.fill(&path, FillRule::NonZero),
@@ -109,7 +109,7 @@ fn main() {
             font::TextAlign::Right,
         )
         .0;
-    let path: Vec<font::PathOp> = path.collect();
+    let path: Vec<PathOp> = path.collect();
     r.composite_matte(
         (0, 0, 512, 512),
         p.fill(&path, FillRule::NonZero),
@@ -126,7 +126,7 @@ fn main() {
             font::TextAlign::Center,
         )
         .0;
-    let path: Vec<font::PathOp> = path.collect();
+    let path: Vec<PathOp> = path.collect();
     r.composite_matte(
         (0, 0, 512, 512),
         p.fill(&path, FillRule::NonZero),
@@ -143,7 +143,7 @@ fn main() {
             font::TextAlign::Right,
         )
         .0;
-    let path: Vec<font::PathOp> = path.collect();
+    let path: Vec<PathOp> = path.collect();
     r.composite_matte(
         (0, 0, 512, 512),
         p.fill(&path, FillRule::NonZero),
@@ -160,7 +160,7 @@ fn main() {
             font::TextAlign::Vertical,
         )
         .0;
-    let path: Vec<font::PathOp> = path.collect();
+    let path: Vec<PathOp> = path.collect();
     r.composite_matte(
         (0, 0, 512, 512),
         p.fill(&path, FillRule::NonZero),
@@ -177,7 +177,7 @@ fn main() {
             font::TextAlign::Vertical,
         )
         .0;
-    let path: Vec<font::PathOp> = path.collect();
+    let path: Vec<PathOp> = path.collect();
     r.composite_matte(
         (0, 0, 512, 512),
         p.fill(&path, FillRule::NonZero),
