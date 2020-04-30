@@ -1,7 +1,7 @@
 //! This tests writing directions for different languages.
 
 use fonterator as font; // For parsing font file.
-use footile::{FillRule, Plotter, PathOp}; // For rendering font text.
+use footile::{FillRule, PathOp, Plotter}; // For rendering font text.
 use pix::ops::SrcOver;
 use pix::rgb::{Rgba8p, SRgba8};
 use pix::Raster;

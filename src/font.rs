@@ -7,8 +7,8 @@
 // or http://opensource.org/licenses/Zlib>, at your option. This file may not be
 // copied, modified, or distributed except according to those terms.
 
-use footile::PathOp;
 use crate::direction::{direction, Direction};
+use footile::PathOp;
 
 /// Text alignment.
 #[derive(Copy, Clone, Debug)]

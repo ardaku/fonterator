@@ -32,7 +32,7 @@
     variant_size_differences
 )]
 
-mod font;
 mod direction;
+mod font;
 
 pub use font::*;
