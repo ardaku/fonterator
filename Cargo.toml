@@ -41,7 +41,7 @@ default-features = false # Don't depend on log crate
 [dev-dependencies]
 svg = "0.8"
 png_pong = "0.4"
-pix = "0.12"
+pix = "0.13"
 
 [package.metadata.docs.rs]
 all-features = true
