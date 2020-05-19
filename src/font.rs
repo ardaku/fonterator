@@ -8,7 +8,7 @@
 // copied, modified, or distributed except according to those terms.
 
 use crate::direction::{direction, Direction};
-use footile::{Pt, PathOp};
+use footile::{PathOp, Pt};
 use ttf_parser::kern::Subtable;
 
 /// Text alignment.
@@ -125,7 +125,9 @@ impl<'a> Font<'a> {
                             selected_font
                                 .0
                                 .kerning_subtables()
-                                .next().unwrap_or(Subtable::default()).glyphs_kerning(glyph_id, last)
+                                .next()
+                                .unwrap_or(Subtable::default())
+                                .glyphs_kerning(glyph_id, last)
                                 .unwrap_or(0)
                                 .into()
                         } else {
@@ -299,7 +301,9 @@ impl<'a> CharPathIterator<'a> {
                             selected_font
                                 .0
                                 .kerning_subtables()
-                                .next().unwrap_or(Subtable::default()).glyphs_kerning(glyph_id, last)
+                                .next()
+                                .unwrap_or(Subtable::default())
+                                .glyphs_kerning(glyph_id, last)
                                 .unwrap_or(0)
                                 .into()
                         } else {
@@ -320,36 +324,46 @@ impl<'a> CharPathIterator<'a> {
 
 impl ttf_parser::OutlineBuilder for CharPathIterator<'_> {
     fn move_to(&mut self, x: f32, y: f32) {
-        self.path.push(PathOp::Move(
-            Pt(x * self.wh.0 + self.xy.0,
-            y * self.wh.1 + self.xy.1 + self.offset),
-        ));
+        self.path.push(PathOp::Move(Pt(
+            x * self.wh.0 + self.xy.0,
+            y * self.wh.1 + self.xy.1 + self.offset,
+        )));
     }
 
     fn line_to(&mut self, x: f32, y: f32) {
-        self.path.push(PathOp::Line(
-            Pt(x * self.wh.0 + self.xy.0,
-            y * self.wh.1 + self.xy.1 + self.offset),
-        ));
+        self.path.push(PathOp::Line(Pt(
+            x * self.wh.0 + self.xy.0,
+            y * self.wh.1 + self.xy.1 + self.offset,
+        )));
     }
 
     fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
         self.path.push(PathOp::Quad(
-            Pt(x1 * self.wh.0 + self.xy.0,
-            y1 * self.wh.1 + self.xy.1 + self.offset),
-            Pt(x * self.wh.0 + self.xy.0,
-            y * self.wh.1 + self.xy.1 + self.offset),
+            Pt(
+                x1 * self.wh.0 + self.xy.0,
+                y1 * self.wh.1 + self.xy.1 + self.offset,
+            ),
+            Pt(
+                x * self.wh.0 + self.xy.0,
+                y * self.wh.1 + self.xy.1 + self.offset,
+            ),
         ));
     }
 
     fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
         self.path.push(PathOp::Cubic(
-            Pt(x1 * self.wh.0 + self.xy.0,
-            y1 * self.wh.1 + self.xy.1 + self.offset),
-            Pt(x2 * self.wh.0 + self.xy.0,
-            y2 * self.wh.1 + self.xy.1 + self.offset),
-            Pt(x * self.wh.0 + self.xy.0,
-            y * self.wh.1 + self.xy.1 + self.offset),
+            Pt(
+                x1 * self.wh.0 + self.xy.0,
+                y1 * self.wh.1 + self.xy.1 + self.offset,
+            ),
+            Pt(
+                x2 * self.wh.0 + self.xy.0,
+                y2 * self.wh.1 + self.xy.1 + self.offset,
+            ),
+            Pt(
+                x * self.wh.0 + self.xy.0,
+                y * self.wh.1 + self.xy.1 + self.offset,
+            ),
         ));
     }
 
