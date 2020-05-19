@@ -30,7 +30,7 @@ is-it-maintained-open-issues = { repository = "libcala/fonterator" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-footile = { path = "../footile" } # "0.4"        # For vector path operations
+footile = "0.5"        # For vector path operations
 unicode-script = "0.5" # For calculating text direction.
 
 # For reading TTF/OTF files
