@@ -8,7 +8,8 @@
 // copied, modified, or distributed except according to those terms.
 
 use crate::direction::{direction, Direction};
-use footile::PathOp;
+use footile::{Pt, PathOp};
+use ttf_parser::kern::Subtable;
 
 /// Text alignment.
 #[derive(Copy, Clone, Debug)]
@@ -123,7 +124,8 @@ impl<'a> Font<'a> {
                         + if let Some(last) = last {
                             selected_font
                                 .0
-                                .glyphs_kerning(glyph_id, last)
+                                .kerning_subtables()
+                                .next().unwrap_or(Subtable::default()).glyphs_kerning(glyph_id, last)
                                 .unwrap_or(0)
                                 .into()
                         } else {
@@ -296,7 +298,8 @@ impl<'a> CharPathIterator<'a> {
                         + if let Some(last) = self.last {
                             selected_font
                                 .0
-                                .glyphs_kerning(glyph_id, last)
+                                .kerning_subtables()
+                                .next().unwrap_or(Subtable::default()).glyphs_kerning(glyph_id, last)
                                 .unwrap_or(0)
                                 .into()
                         } else {
@@ -318,35 +321,35 @@ impl<'a> CharPathIterator<'a> {
 impl ttf_parser::OutlineBuilder for CharPathIterator<'_> {
     fn move_to(&mut self, x: f32, y: f32) {
         self.path.push(PathOp::Move(
-            x * self.wh.0 + self.xy.0,
-            y * self.wh.1 + self.xy.1 + self.offset,
+            Pt(x * self.wh.0 + self.xy.0,
+            y * self.wh.1 + self.xy.1 + self.offset),
         ));
     }
 
     fn line_to(&mut self, x: f32, y: f32) {
         self.path.push(PathOp::Line(
-            x * self.wh.0 + self.xy.0,
-            y * self.wh.1 + self.xy.1 + self.offset,
+            Pt(x * self.wh.0 + self.xy.0,
+            y * self.wh.1 + self.xy.1 + self.offset),
         ));
     }
 
     fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
         self.path.push(PathOp::Quad(
-            x1 * self.wh.0 + self.xy.0,
-            y1 * self.wh.1 + self.xy.1 + self.offset,
-            x * self.wh.0 + self.xy.0,
-            y * self.wh.1 + self.xy.1 + self.offset,
+            Pt(x1 * self.wh.0 + self.xy.0,
+            y1 * self.wh.1 + self.xy.1 + self.offset),
+            Pt(x * self.wh.0 + self.xy.0,
+            y * self.wh.1 + self.xy.1 + self.offset),
         ));
     }
 
     fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
         self.path.push(PathOp::Cubic(
-            x1 * self.wh.0 + self.xy.0,
-            y1 * self.wh.1 + self.xy.1 + self.offset,
-            x2 * self.wh.0 + self.xy.0,
-            y2 * self.wh.1 + self.xy.1 + self.offset,
-            x * self.wh.0 + self.xy.0,
-            y * self.wh.1 + self.xy.1 + self.offset,
+            Pt(x1 * self.wh.0 + self.xy.0,
+            y1 * self.wh.1 + self.xy.1 + self.offset),
+            Pt(x2 * self.wh.0 + self.xy.0,
+            y2 * self.wh.1 + self.xy.1 + self.offset),
+            Pt(x * self.wh.0 + self.xy.0,
+            y * self.wh.1 + self.xy.1 + self.offset),
         ));
     }
 
