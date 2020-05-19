@@ -126,7 +126,7 @@ impl<'a> Font<'a> {
                                 .0
                                 .kerning_subtables()
                                 .next()
-                                .unwrap_or(Subtable::default())
+                                .unwrap_or_else(Subtable::default)
                                 .glyphs_kerning(glyph_id, last)
                                 .unwrap_or(0)
                                 .into()
@@ -302,7 +302,7 @@ impl<'a> CharPathIterator<'a> {
                                 .0
                                 .kerning_subtables()
                                 .next()
-                                .unwrap_or(Subtable::default())
+                                .unwrap_or_else(Subtable::default)
                                 .glyphs_kerning(glyph_id, last)
                                 .unwrap_or(0)
                                 .into()
