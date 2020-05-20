@@ -1,7 +1,7 @@
 //! This tests writing directions for different languages.
 
 use fonterator as font; // For parsing font file.
-use footile::{FillRule, Plotter}; // For rendering font text.
+use footile::{FillRule, Plotter, Transform}; // For rendering font text.
 use pix::ops::SrcOver;
 use pix::rgb::{Rgba8p, SRgba8};
 use pix::matte::Matte8;
@@ -34,11 +34,11 @@ fn main() {
     let mut r = Raster::with_clear(512, 512);
 
     // Render paths.
+    p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
     let path = font
         .render(
             english2,
-            512.0 - 64.0,
-            (FONT_SIZE, FONT_SIZE),
+            (512.0 - 64.0) / FONT_SIZE,
             font::TextAlign::Left,
         )
         .0;
@@ -49,19 +49,19 @@ fn main() {
         Rgba8p::new(0, 0, 0, 255),
         SrcOver,
     );
+    // Reset plotter
+    let mut pr = p.raster();
+    pr.clear();
+    p = Plotter::new(pr);
+    p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font
         .render(
             nepali,
-            512.0 - 64.0,
-            (FONT_SIZE, FONT_SIZE),
+            (512.0 - 64.0) / FONT_SIZE,
             font::TextAlign::Left,
         )
         .0;
-    // Clear plotter
-    let mut pr = p.raster();
-    pr.clear();
-    p = Plotter::new(pr);
     // Composite
     r.composite_matte(
         (64, 32 * 1, 512, 512),
@@ -70,19 +70,19 @@ fn main() {
         Rgba8p::new(0, 0, 0, 255),
         SrcOver,
     );
+    // Reset plotter
+    let mut pr = p.raster();
+    pr.clear();
+    p = Plotter::new(pr);
+    p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font
         .render(
             english,
-            512.0 - 64.0,
-            (FONT_SIZE, FONT_SIZE),
+            (512.0 - 64.0) / FONT_SIZE,
             font::TextAlign::Center,
         )
         .0;
-    // Clear plotter
-    let mut pr = p.raster();
-    pr.clear();
-    p = Plotter::new(pr);
     // Composite
     r.composite_matte(
         (64, 64, 512, 512),
@@ -91,19 +91,19 @@ fn main() {
         Rgba8p::new(0, 0, 0, 255),
         SrcOver,
     );
+    // Reset plotter
+    let mut pr = p.raster();
+    pr.clear();
+    p = Plotter::new(pr);
+    p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font
         .render(
             arabic,
-            512.0 - 64.0,
-            (FONT_SIZE, FONT_SIZE),
+            (512.0 - 64.0) / FONT_SIZE,
             font::TextAlign::Right,
         )
         .0;
-    // Clear plotter
-    let mut pr = p.raster();
-    pr.clear();
-    p = Plotter::new(pr);
     // Composite
     r.composite_matte(
         (64, 96, 512, 512),
@@ -112,19 +112,19 @@ fn main() {
         Rgba8p::new(0, 0, 0, 255),
         SrcOver,
     );
+    // Reset plotter
+    let mut pr = p.raster();
+    pr.clear();
+    p = Plotter::new(pr);
+    p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font
         .render(
             hebrew,
-            512.0 - 64.0,
-            (FONT_SIZE, FONT_SIZE),
+            (512.0 - 64.0) / FONT_SIZE,
             font::TextAlign::Right,
         )
         .0;
-    // Clear plotter
-    let mut pr = p.raster();
-    pr.clear();
-    p = Plotter::new(pr);
     // Composite
     r.composite_matte(
         (64, 128, 512 - 64, 512 - 128),
@@ -133,19 +133,19 @@ fn main() {
         Rgba8p::new(0, 0, 0, 255),
         SrcOver,
     );
+    // Reset plotter
+    let mut pr = p.raster();
+    pr.clear();
+    p = Plotter::new(pr);
+    p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font
         .render(
             nepali,
-            512.0 - 64.0,
-            (FONT_SIZE, FONT_SIZE),
+            (512.0 - 64.0) / FONT_SIZE,
             font::TextAlign::Center,
         )
         .0;
-    // Clear plotter
-    let mut pr = p.raster();
-    pr.clear();
-    p = Plotter::new(pr);
     // Composite
     r.composite_matte(
         (64, 32 * 5, 512 - 64, 512 - 32 * 5),
@@ -154,19 +154,19 @@ fn main() {
         Rgba8p::new(0, 0, 0, 255),
         SrcOver,
     );
-
-    let path = font
-        .render(
-            english,
-            512.0 - 64.0,
-            (FONT_SIZE, FONT_SIZE * 2.0),
-            font::TextAlign::Right,
-        )
-        .0;
-    // Clear plotter
+    // Reset plotter
     let mut pr = p.raster();
     pr.clear();
     p = Plotter::new(pr);
+
+    p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE * 2.0));
+    let path = font
+        .render(
+            english,
+            (512.0 - 64.0) / FONT_SIZE,
+            font::TextAlign::Right,
+        )
+        .0;
     // Composite
     r.composite_matte(
         (64, 32 * 6, 512 - 64, 512 - 32 * 6),
@@ -175,19 +175,19 @@ fn main() {
         Rgba8p::new(0, 0, 0, 255),
         SrcOver,
     );
+    // Reset plotter
+    let mut pr = p.raster();
+    pr.clear();
+    p = Plotter::new(pr);
+    p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font
         .render(
             korean,
-            512.0 - 32.0 * 7.0,
-            (FONT_SIZE, FONT_SIZE),
+            (512.0 - 32.0 * 7.0) / FONT_SIZE,
             font::TextAlign::Vertical,
         )
         .0;
-    // Clear plotter
-    let mut pr = p.raster();
-    pr.clear();
-    p = Plotter::new(pr);
     // Composite
     r.composite_matte(
         (0, 0, 512, 512),
@@ -196,19 +196,19 @@ fn main() {
         Rgba8p::new(0, 0, 0, 255),
         SrcOver,
     );
+    // Reset plotter
+    let mut pr = p.raster();
+    pr.clear();
+    p = Plotter::new(pr);
+    p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font
         .render(
             japanese,
-            512.0 - 32.0 * 7.0,
-            (FONT_SIZE, FONT_SIZE),
+            (512.0 - 32.0 * 7.0) / FONT_SIZE,
             font::TextAlign::Vertical,
         )
         .0;
-    // Clear plotter
-    let mut pr = p.raster();
-    pr.clear();
-    p = Plotter::new(pr);
     // Composite
     r.composite_matte(
         (32, 0, 512, 512),

@@ -1,4 +1,4 @@
-use footile::{FillRule, Plotter};
+use footile::{FillRule, Plotter, Transform};
 use pix::ops::SrcOver;
 use pix::rgb::{Rgba8p, SRgba8};
 use pix::matte::Matte8;
@@ -21,14 +21,14 @@ fn main() {
         // Get path iterator
         let (path, l) = font.render(
             &text[begin..],                             /*text*/
-            2048.0, /*bbox*/
-            (256.0, 256.0),                             /*size*/
+            2048.0 / 256.0,
             fonterator::TextAlign::Left,
         );
         // Clear plotter
         let mut pr = p.raster();
         pr.clear();
         p = Plotter::new(pr);
+        p.set_transform(Transform::with_scale(256.0, 256.0));
         // Composite
         r.composite_matte(
             (0, line * 256, 2048, 2048),

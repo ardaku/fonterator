@@ -73,7 +73,6 @@ impl<'a> Font<'a> {
         &'a self,
         text: &'a str,
         row: f32,
-        size: (f32, f32),
         text_align: TextAlign,
     ) -> (TextPathIterator<'a>, usize) {
         let mut pixel_length = 0.0;
@@ -118,7 +117,7 @@ impl<'a> Font<'a> {
             
             // Transform font size.
             let fh = selected_font.0.height() as f32;
-            let font_size = (size.0 / fh, size.1 / fh);
+            let font_size = (fh.recip(), fh.recip());
 
             let advance = match selected_font.0.glyph_hor_advance(glyph_id) {
                 Some(adv) => {
@@ -178,7 +177,7 @@ impl<'a> Font<'a> {
                 },
                 temp: vec![],
                 back: false,
-                path: CharPathIterator::new(self, xy, size, vertical),
+                path: CharPathIterator::new(self, xy, vertical),
             },
             left_over.unwrap_or_else(|| text.bytes().len()),
         )
@@ -190,8 +189,6 @@ struct CharPathIterator<'a> {
     font: &'a Font<'a>,
     // Path of the current character.
     path: Vec<PathOp>,
-    // W & H
-    size: (f32, f32),
     // Return position for X.
     xy: (f32, f32),
     // General direction of the text.
@@ -214,13 +211,11 @@ impl<'a> CharPathIterator<'a> {
     fn new(
         font: &'a Font<'a>,
         xy: (f32, f32),
-        size: (f32, f32),
         vertical: bool,
     ) -> Self {
         Self {
             font,
             path: vec![],
-            size,
             xy,
             direction: Direction::CheckNext,
             last: None,
@@ -283,12 +278,12 @@ impl<'a> CharPathIterator<'a> {
 
         let font_height = selected_font.0.height() as f32;
         self.font_ascender = selected_font.0.ascender() as f32;
-        self.font_size = (self.size.0 / font_height, self.size.1 / font_height);
+        self.font_size = (font_height.recip(), font_height.recip());
 
         selected_font.0.outline_glyph(glyph_id, self);
 
         if self.vertical {
-            self.xy.1 += self.size.1;
+            self.xy.1 += 1.0;
         } else {
             let advance = match selected_font.0.glyph_hor_advance(glyph_id) {
                 Some(adv) => {

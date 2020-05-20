@@ -42,7 +42,8 @@ fonterator = "0.7"
 ### Example
 ```rust,no_run
 use fonterator as font; // For parsing font file.
-use footile::{FillRule, Plotter, PathOp}; // For rendering font text.
+// For rendering text
+use footile::{FillRule, Plotter, PathOp, Transform};
 use png_pong::FrameEncoder; // For saving PNG
 use pix::{
     Raster,
@@ -62,15 +63,13 @@ fn main() {
     // Init font, and paths.
     let font = font::monospace_font();
 
-    // Init rendering.
+    // Render English Left Aligned.
     let mut p = Plotter::new(Raster::with_clear(512, 512));
     let mut r = Raster::with_clear(512, 512);
-
-    // Render English Left Aligned.
+    p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
     let path = font.render(
         english,
-        512.0 - 64.0,
-        (FONT_SIZE, FONT_SIZE),
+        (512.0 - 64.0) / FONT_SIZE,
         font::TextAlign::Left
     ).0;
     r.composite_matte(
@@ -82,10 +81,13 @@ fn main() {
     );
 
     // Render Korean Vertically
+    let mut pr = p.raster();
+    pr.clear();
+    p = Plotter::new(pr);
+    p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
     let path = font.render(
         korean,
-        512.0,
-        (FONT_SIZE, FONT_SIZE),
+        512.0 / FONT_SIZE,
         font::TextAlign::Vertical
     ).0;
     r.composite_matte(
@@ -97,10 +99,13 @@ fn main() {
     );
 
     // Render Japanese Vertically
+    let mut pr = p.raster();
+    pr.clear();
+    p = Plotter::new(pr);
+    p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
     let path = font.render(
         japanese,
-        512.0 - 32.0 * 7.0,
-        (FONT_SIZE, FONT_SIZE),
+        (512.0 - 32.0 * 7.0) / FONT_SIZE,
         font::TextAlign::Vertical
     ).0;
     r.composite_matte(

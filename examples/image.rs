@@ -18,7 +18,6 @@ fn main() {
         .render(
             "…hello‽é¿?üæ 2⸘",  /*text*/
             2048.0,                 /*width*/
-            (FONT_SIZE, FONT_SIZE),        /*size*/
             fonterator::TextAlign::Left,
         )
         .0;
@@ -27,16 +26,16 @@ fn main() {
     for i in &mut path {
         match i {
             PathOp::Move(Pt(x, y)) => {
-                data = data.move_to((x, y));
+                data = data.move_to((x * FONT_SIZE, y * FONT_SIZE));
             }
             PathOp::Line(Pt(x, y)) => {
-                data = data.line_to((x, y));
+                data = data.line_to((x * FONT_SIZE, y * FONT_SIZE));
             }
             PathOp::Quad(Pt(cx, cy), Pt(x, y)) => {
-                data = data.quadratic_curve_to((cx, cy, x, y));
+                data = data.quadratic_curve_to((cx * FONT_SIZE, cy * FONT_SIZE, x * FONT_SIZE, y * FONT_SIZE));
             }
             PathOp::Cubic(Pt(ax, ay), Pt(bx, by), Pt(x, y)) => {
-                data = data.cubic_curve_to((ax, ay, bx, by, x, y));
+                data = data.cubic_curve_to((ax * FONT_SIZE, ay * FONT_SIZE, bx * FONT_SIZE, by * FONT_SIZE, x * FONT_SIZE, y * FONT_SIZE));
             }
             PathOp::Close() => {
                 data = data.close();

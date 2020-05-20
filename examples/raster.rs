@@ -1,4 +1,4 @@
-use footile::{FillRule, Plotter};
+use footile::{FillRule, Plotter, Transform};
 use pix::rgb::{Rgba8p, SRgba8};
 use pix::matte::Matte8;
 use pix::Raster;
@@ -15,14 +15,14 @@ fn main() {
     // Init rendering
     let mut p = Plotter::new(Raster::with_clear(2048, 2048));
     let mut r = Raster::with_clear(2048, 2048);
+    p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let mut start = 0;
     let mut row = 0;
     loop {
         let (path, left) = font.render(
             &STR[start..],
-            2048.0,
-            (FONT_SIZE, FONT_SIZE),
+            2048.0 / FONT_SIZE,
             fonterator::TextAlign::Center,
         );
         r.composite_matte(
@@ -32,9 +32,11 @@ fn main() {
             Rgba8p::new(0, 0, 0, 255),
             SrcOver,
         );
+        // Reset plotter
         let mut pr = p.raster();
         pr.clear();
         p = Plotter::new(pr);
+        p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
         // 
         if left == 0 {
             break;
@@ -49,8 +51,7 @@ fn main() {
     loop {
         let (path, left) = font.render(
             &STR[start..],
-            2048.0,
-            (FONT_SIZE, FONT_SIZE),
+            2048.0 / FONT_SIZE,
             fonterator::TextAlign::Right,
         );
         r.composite_matte(
@@ -60,9 +61,11 @@ fn main() {
             Rgba8p::new(0, 0, 0, 255),
             SrcOver,
         );
+        // Reset plotter
         let mut pr = p.raster();
         pr.clear();
         p = Plotter::new(pr);
+        p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
         // 
         if left == 0 {
             break;
