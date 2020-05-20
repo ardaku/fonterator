@@ -155,25 +155,17 @@ impl<'a> Font<'a> {
             last = Some(glyph_id);
         }
 
-        let mut bbox = (0.0, 0.0, 0.0, 0.0);
+        let mut xy = (0.0, 0.0);
         let mut vertical = false;
 
         match text_align {
             TextAlign::Left => { /* don't adjust */ }
-            TextAlign::Right => bbox.0 = row - pixel_length,
+            TextAlign::Right => xy.0 = row - pixel_length,
             TextAlign::Center => {
-                bbox.0 = (row - pixel_length) * 0.5
+                xy.0 = (row - pixel_length) * 0.5
             }
             TextAlign::Justified => { /* don't adjust */ }
             TextAlign::Vertical => vertical = true,
-        }
-
-        if vertical {
-            bbox.2 = wh.0;
-            bbox.3 = row;
-        } else {
-            bbox.2 = row;
-            bbox.3 = wh.1;
         }
 
         // Second Pass: Get `PathOp`s
@@ -186,7 +178,7 @@ impl<'a> Font<'a> {
                 },
                 temp: vec![],
                 back: false,
-                path: CharPathIterator::new(self, bbox, wh, vertical),
+                path: CharPathIterator::new(self, xy, wh, vertical),
             },
             left_over.unwrap_or_else(|| text.bytes().len()),
         )
@@ -200,8 +192,6 @@ struct CharPathIterator<'a> {
     path: Vec<PathOp>,
     // W & H
     size: (f32, f32),
-    // X, Y, X2, Y2
-    bbox: (f32, f32, f32, f32),
     // Multiplied wh.
     wh: (f32, f32),
     // Return position for X.
@@ -222,17 +212,16 @@ struct CharPathIterator<'a> {
 impl<'a> CharPathIterator<'a> {
     fn new(
         font: &'a Font<'a>,
-        bbox: (f32, f32, f32, f32),
+        xy: (f32, f32),
         size: (f32, f32),
         vertical: bool,
     ) -> Self {
         Self {
             font,
             path: vec![],
-            bbox,
             size,
             wh: (0.0, 0.0),
-            xy: (bbox.0, bbox.1),
+            xy,
             direction: Direction::CheckNext,
             last: None,
             vertical,
@@ -257,7 +246,6 @@ impl<'a> CharPathIterator<'a> {
 
         if self.direction == Direction::CheckNext {
             self.direction = direction(c);
-            self.xy = (self.bbox.0, self.bbox.1);
         }
 
         let mut index = 0;

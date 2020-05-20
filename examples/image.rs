@@ -16,7 +16,7 @@ fn main() {
     // Loop through the glyphs in the text, adding to the SVG.
     let mut path = font
         .render(
-            "DIVE and…    ‽é¿?üæ",  /*text*/
+            "…hello‽é¿?üæ 2⸘",  /*text*/
             2048.0,                 /*width*/
             (FONT_SIZE, FONT_SIZE),        /*size*/
             fonterator::TextAlign::Left,
