@@ -114,26 +114,27 @@ impl<'a> Font<'a> {
             };
 
             let selected_font = &self.fonts[index].none;
-            
+
             // Transform font size.
             let fh = selected_font.0.height() as f32;
             let font_size = (fh.recip(), fh.recip());
 
             let advance = match selected_font.0.glyph_hor_advance(glyph_id) {
                 Some(adv) => {
-                    font_size.0 * (f32::from(adv)
-                        + if let Some(last) = last {
-                            selected_font
-                                .0
-                                .kerning_subtables()
-                                .next()
-                                .unwrap_or_else(Subtable::default)
-                                .glyphs_kerning(glyph_id, last)
-                                .unwrap_or(0)
-                                .into()
-                        } else {
-                            0f32
-                        })
+                    font_size.0
+                        * (f32::from(adv)
+                            + if let Some(last) = last {
+                                selected_font
+                                    .0
+                                    .kerning_subtables()
+                                    .next()
+                                    .unwrap_or_else(Subtable::default)
+                                    .glyphs_kerning(glyph_id, last)
+                                    .unwrap_or(0)
+                                    .into()
+                            } else {
+                                0f32
+                            })
                 }
                 None => 0.0,
             };
@@ -160,9 +161,7 @@ impl<'a> Font<'a> {
         match text_align {
             TextAlign::Left => { /* don't adjust */ }
             TextAlign::Right => xy.0 = row - pixel_length,
-            TextAlign::Center => {
-                xy.0 = (row - pixel_length) * 0.5
-            }
+            TextAlign::Center => xy.0 = (row - pixel_length) * 0.5,
             TextAlign::Justified => { /* don't adjust */ }
             TextAlign::Vertical => vertical = true,
         }
@@ -201,18 +200,14 @@ struct CharPathIterator<'a> {
     bold: bool,
     //
     italic: bool,
-    // 
+    //
     font_ascender: f32,
     //
     font_size: (f32, f32),
 }
 
 impl<'a> CharPathIterator<'a> {
-    fn new(
-        font: &'a Font<'a>,
-        xy: (f32, f32),
-        vertical: bool,
-    ) -> Self {
+    fn new(font: &'a Font<'a>, xy: (f32, f32), vertical: bool) -> Self {
         Self {
             font,
             path: vec![],
@@ -287,19 +282,20 @@ impl<'a> CharPathIterator<'a> {
         } else {
             let advance = match selected_font.0.glyph_hor_advance(glyph_id) {
                 Some(adv) => {
-                    self.font_size.0 * (f32::from(adv)
-                        + if let Some(last) = self.last {
-                            selected_font
-                                .0
-                                .kerning_subtables()
-                                .next()
-                                .unwrap_or_else(Subtable::default)
-                                .glyphs_kerning(glyph_id, last)
-                                .unwrap_or(0)
-                                .into()
-                        } else {
-                            0f32
-                        })
+                    self.font_size.0
+                        * (f32::from(adv)
+                            + if let Some(last) = self.last {
+                                selected_font
+                                    .0
+                                    .kerning_subtables()
+                                    .next()
+                                    .unwrap_or_else(Subtable::default)
+                                    .glyphs_kerning(glyph_id, last)
+                                    .unwrap_or(0)
+                                    .into()
+                            } else {
+                                0f32
+                            })
                 }
                 None => 0.0,
             };
@@ -348,7 +344,7 @@ impl ttf_parser::OutlineBuilder for CharPathIterator<'_> {
         let y1 = self.font_ascender - y1;
         let y2 = self.font_ascender - y2;
         let y = self.font_ascender - y;
-    
+
         self.path.push(PathOp::Cubic(
             Pt(
                 x1 * self.font_size.0 + self.xy.0,

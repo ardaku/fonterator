@@ -36,7 +36,7 @@ Add the following to your `Cargo.toml`.
 
 ```toml
 [dependencies]
-fonterator = "0.7"
+fonterator = "0.8"
 ```
 
 ### Example

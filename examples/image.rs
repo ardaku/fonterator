@@ -1,4 +1,4 @@
-use footile::{Pt, PathOp};
+use footile::{PathOp, Pt};
 use svg::{
     node::element::{path::Data, Group, Path, Style},
     Document, Node,
@@ -16,8 +16,8 @@ fn main() {
     // Loop through the glyphs in the text, adding to the SVG.
     let mut path = font
         .render(
-            "…hello‽é¿?üæ 2⸘",  /*text*/
-            2048.0,                 /*width*/
+            "…hello‽é¿?üæ 2⸘", /*text*/
+            2048.0,                      /*width*/
             fonterator::TextAlign::Left,
         )
         .0;
@@ -32,10 +32,22 @@ fn main() {
                 data = data.line_to((x * FONT_SIZE, y * FONT_SIZE));
             }
             PathOp::Quad(Pt(cx, cy), Pt(x, y)) => {
-                data = data.quadratic_curve_to((cx * FONT_SIZE, cy * FONT_SIZE, x * FONT_SIZE, y * FONT_SIZE));
+                data = data.quadratic_curve_to((
+                    cx * FONT_SIZE,
+                    cy * FONT_SIZE,
+                    x * FONT_SIZE,
+                    y * FONT_SIZE,
+                ));
             }
             PathOp::Cubic(Pt(ax, ay), Pt(bx, by), Pt(x, y)) => {
-                data = data.cubic_curve_to((ax * FONT_SIZE, ay * FONT_SIZE, bx * FONT_SIZE, by * FONT_SIZE, x * FONT_SIZE, y * FONT_SIZE));
+                data = data.cubic_curve_to((
+                    ax * FONT_SIZE,
+                    ay * FONT_SIZE,
+                    bx * FONT_SIZE,
+                    by * FONT_SIZE,
+                    x * FONT_SIZE,
+                    y * FONT_SIZE,
+                ));
             }
             PathOp::Close() => {
                 data = data.close();

@@ -4,6 +4,16 @@ All notable changes to `fonterator` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://jeronlau.tk/semver/).
 
+## [0.8.0] - 2020-05-20
+### Changed
+- Update to footile 0.5
+- Update to ttf-parser 0.6
+- Remove arguments on `Font.render()`, recommend using footile `Transform`s
+  instead.
+
+### Fixed
+- Some text layout algorithms that were completely wrong
+
 ## [0.7.0] - 2020-04-30
 ### Changed
 - Updated to footile 0.4

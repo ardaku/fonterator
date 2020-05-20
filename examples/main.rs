@@ -1,7 +1,7 @@
 use footile::{FillRule, Plotter, Transform};
+use pix::matte::Matte8;
 use pix::ops::SrcOver;
 use pix::rgb::{Rgba8p, SRgba8};
-use pix::matte::Matte8;
 use pix::Raster;
 use png_pong::FrameEncoder; // For saving PNG
 
@@ -20,7 +20,7 @@ fn main() {
     loop {
         // Get path iterator
         let (path, l) = font.render(
-            &text[begin..],                             /*text*/
+            &text[begin..], /*text*/
             2048.0 / 256.0,
             fonterator::TextAlign::Left,
         );

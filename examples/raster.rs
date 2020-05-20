@@ -1,8 +1,8 @@
 use footile::{FillRule, Plotter, Transform};
-use pix::rgb::{Rgba8p, SRgba8};
 use pix::matte::Matte8;
-use pix::Raster;
 use pix::ops::SrcOver;
+use pix::rgb::{Rgba8p, SRgba8};
+use pix::Raster;
 use png_pong::FrameEncoder; // For saving PNG
 
 const FONT_SIZE: f32 = 200.0;
@@ -37,7 +37,7 @@ fn main() {
         pr.clear();
         p = Plotter::new(pr);
         p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
-        // 
+        //
         if left == 0 {
             break;
         } else {
@@ -66,7 +66,7 @@ fn main() {
         pr.clear();
         p = Plotter::new(pr);
         p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
-        // 
+        //
         if left == 0 {
             break;
         } else {
