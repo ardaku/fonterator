@@ -25,10 +25,9 @@ fn main() {
             fonterator::TextAlign::Left,
         );
         println!("{} {}", begin, begin + l);
-        let path: Vec<footile::PathOp> = path.collect();
         r.composite_matte(
             (0, line * 256, 2048, 2048),
-            p.fill(FillRule::NonZero, &path, Matte8::new(255)),
+            p.fill(FillRule::NonZero, path, Matte8::new(255)),
             (),
             Rgba8p::new(0, 0, 0, 255), /*color*/
             SrcOver,

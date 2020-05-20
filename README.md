@@ -73,10 +73,9 @@ fn main() {
         (FONT_SIZE, FONT_SIZE),
         font::TextAlign::Left
     ).0;
-    let path: Vec<PathOp> = path.collect();
     r.composite_matte(
         (64, 0, 512, 512),
-        p.fill(FillRule::NonZero, &path, Matte8::new(255)),
+        p.fill(FillRule::NonZero, path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),
         SrcOver,
@@ -89,10 +88,9 @@ fn main() {
         (FONT_SIZE, FONT_SIZE),
         font::TextAlign::Vertical
     ).0;
-    let path: Vec<PathOp> = path.collect();
     r.composite_matte(
         (0, 0, 512, 512),
-        p.fill(FillRule::NonZero, &path, Matte8::new(255)),
+        p.fill(FillRule::NonZero, path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),
         SrcOver,
@@ -105,10 +103,9 @@ fn main() {
         (FONT_SIZE, FONT_SIZE),
         font::TextAlign::Vertical
     ).0;
-    let path: Vec<PathOp> = path.collect();
     r.composite_matte(
         (32, 0, 512, 512),
-        p.fill(FillRule::NonZero, &path, Matte8::new(255)),
+        p.fill(FillRule::NonZero, path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),
         SrcOver,

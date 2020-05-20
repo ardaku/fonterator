@@ -24,11 +24,10 @@ fn main() {
             fonterator::TextAlign::Left,
         )
         .0;
-    let path: Vec<footile::PathOp> = path.collect();
 
     r.composite_matte(
         (0, 0, 2048, 2048),
-        p.fill(FillRule::NonZero, &path, Matte8::new(255)),
+        p.fill(FillRule::NonZero, path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),
         SrcOver,
@@ -42,11 +41,10 @@ fn main() {
             fonterator::TextAlign::Right,
         )
         .0;
-    let path: Vec<footile::PathOp> = path.collect();
 
     r.composite_matte(
         (0, 1024, 2048, 1024),
-        p.fill(FillRule::NonZero, &path, Matte8::new(255)),
+        p.fill(FillRule::NonZero, path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),
         SrcOver,
