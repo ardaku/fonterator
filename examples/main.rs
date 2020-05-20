@@ -14,17 +14,22 @@ fn main() {
     let mut r = Raster::with_clear(2048, 2048);
 
     // Render the text
-    let text = "Héllö, Wørłd‽ a"; //野ウサギ a WW野WWウ a wa サW WギWW";
+    let text = "Héllö, Wørłd‽ 野ウサギ a WW野WWウ a wa サW WギWW";
     let mut begin = 0;
     let mut line = 0;
     loop {
+        // Get path iterator
         let (path, l) = font.render(
             &text[begin..],                             /*text*/
             2048.0, /*bbox*/
             (256.0, 256.0),                             /*size*/
             fonterator::TextAlign::Left,
         );
-        println!("{} {}", begin, begin + l);
+        // Clear plotter
+        let mut pr = p.raster();
+        pr.clear();
+        p = Plotter::new(pr);
+        // Composite
         r.composite_matte(
             (0, line * 256, 2048, 2048),
             p.fill(FillRule::NonZero, path, Matte8::new(255)),

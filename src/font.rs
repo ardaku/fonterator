@@ -81,21 +81,12 @@ impl<'a> Font<'a> {
         let mut left_over = None;
         let mut last_space = 0;
 
-        // Transform font size.
-        let fh = self.fonts[0].none.0.height() as f32;
-        let font_size = (size.0 / fh, size.1 / fh);
-        let vh = self.fonts[0].none.0.ascender() as f32;
-
-        dbg!(fh);
-        dbg!(self.fonts[0].none.0.ascender() as f32);
-        dbg!(self.fonts[0].none.0.descender() as f32);
-
         // First Pass: Get pixel length
         for (i, c) in text.char_indices() {
             match c {
                 ' ' => last_space = i,
                 '\n' => {
-                    left_over = Some(i);
+                    left_over = Some(i + 1);
                     break;
                 }
                 chr if chr == BOLD => continue,
@@ -124,6 +115,10 @@ impl<'a> Font<'a> {
             };
 
             let selected_font = &self.fonts[index].none;
+            
+            // Transform font size.
+            let fh = selected_font.0.height() as f32;
+            let font_size = (size.0 / fh, size.1 / fh);
 
             let advance = match selected_font.0.glyph_hor_advance(glyph_id) {
                 Some(adv) => {
@@ -149,10 +144,10 @@ impl<'a> Font<'a> {
             // Extends past the width of the bounding box.
             if pixel_length > row {
                 if last_space != 0 {
-                    left_over = Some(last_space);
+                    left_over = Some(last_space + 1);
                     break;
                 } else {
-                    left_over = Some(i);
+                    left_over = Some(i + 1);
                     break;
                 }
             }
@@ -183,7 +178,7 @@ impl<'a> Font<'a> {
                 },
                 temp: vec![],
                 back: false,
-                path: CharPathIterator::new(self, xy, size, vertical, vh),
+                path: CharPathIterator::new(self, xy, size, vertical),
             },
             left_over.unwrap_or_else(|| text.bytes().len()),
         )
@@ -221,7 +216,6 @@ impl<'a> CharPathIterator<'a> {
         xy: (f32, f32),
         size: (f32, f32),
         vertical: bool,
-        font_ascender: f32,
     ) -> Self {
         Self {
             font,
@@ -233,7 +227,7 @@ impl<'a> CharPathIterator<'a> {
             vertical,
             bold: false,
             italic: false,
-            font_ascender,
+            font_ascender: 0.0,
             font_size: (0.0, 0.0),
         }
     }
@@ -325,7 +319,6 @@ impl<'a> CharPathIterator<'a> {
 impl ttf_parser::OutlineBuilder for CharPathIterator<'_> {
     fn move_to(&mut self, x: f32, y: f32) {
         let y = self.font_ascender - y;
-        println!("MV {} {}", x, y);
         self.path.push(PathOp::Move(Pt(
             x * self.font_size.0 + self.xy.0,
             y * self.font_size.1 + self.xy.1,
@@ -334,7 +327,6 @@ impl ttf_parser::OutlineBuilder for CharPathIterator<'_> {
 
     fn line_to(&mut self, x: f32, y: f32) {
         let y = self.font_ascender - y;
-        println!("LN {} {}", x, y);
         self.path.push(PathOp::Line(Pt(
             x * self.font_size.0 + self.xy.0,
             y * self.font_size.1 + self.xy.1,
@@ -344,7 +336,6 @@ impl ttf_parser::OutlineBuilder for CharPathIterator<'_> {
     fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
         let y1 = self.font_ascender - y1;
         let y = self.font_ascender - y;
-        println!("QD {} {}", x, y);
         self.path.push(PathOp::Quad(
             Pt(
                 x1 * self.font_size.0 + self.xy.0,
@@ -361,8 +352,6 @@ impl ttf_parser::OutlineBuilder for CharPathIterator<'_> {
         let y1 = self.font_ascender - y1;
         let y2 = self.font_ascender - y2;
         let y = self.font_ascender - y;
-    
-        println!("CV {} {}", x, y);
     
         self.path.push(PathOp::Cubic(
             Pt(
