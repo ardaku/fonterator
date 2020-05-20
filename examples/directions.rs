@@ -58,6 +58,11 @@ fn main() {
             font::TextAlign::Left,
         )
         .0;
+    // Clear plotter
+    let mut pr = p.raster();
+    pr.clear();
+    p = Plotter::new(pr);
+    // Composite
     r.composite_matte(
         (64, 32 * 1, 512, 512),
         p.fill(FillRule::NonZero, path, Matte8::new(255)),
@@ -74,6 +79,11 @@ fn main() {
             font::TextAlign::Center,
         )
         .0;
+    // Clear plotter
+    let mut pr = p.raster();
+    pr.clear();
+    p = Plotter::new(pr);
+    // Composite
     r.composite_matte(
         (64, 64, 512, 512),
         p.fill(FillRule::NonZero, path, Matte8::new(255)),
@@ -90,6 +100,11 @@ fn main() {
             font::TextAlign::Right,
         )
         .0;
+    // Clear plotter
+    let mut pr = p.raster();
+    pr.clear();
+    p = Plotter::new(pr);
+    // Composite
     r.composite_matte(
         (64, 96, 512, 512),
         p.fill(FillRule::NonZero, path, Matte8::new(255)),
@@ -106,6 +121,11 @@ fn main() {
             font::TextAlign::Right,
         )
         .0;
+    // Clear plotter
+    let mut pr = p.raster();
+    pr.clear();
+    p = Plotter::new(pr);
+    // Composite
     r.composite_matte(
         (64, 128, 512 - 64, 512 - 128),
         p.fill(FillRule::NonZero, path, Matte8::new(255)),
@@ -122,6 +142,11 @@ fn main() {
             font::TextAlign::Center,
         )
         .0;
+    // Clear plotter
+    let mut pr = p.raster();
+    pr.clear();
+    p = Plotter::new(pr);
+    // Composite
     r.composite_matte(
         (64, 32 * 5, 512 - 64, 512 - 32 * 5),
         p.fill(FillRule::NonZero, path, Matte8::new(255)),
@@ -138,6 +163,11 @@ fn main() {
             font::TextAlign::Right,
         )
         .0;
+    // Clear plotter
+    let mut pr = p.raster();
+    pr.clear();
+    p = Plotter::new(pr);
+    // Composite
     r.composite_matte(
         (64, 32 * 6, 512 - 64, 512 - 32 * 6),
         p.fill(FillRule::NonZero, path, Matte8::new(255)),
@@ -154,6 +184,11 @@ fn main() {
             font::TextAlign::Vertical,
         )
         .0;
+    // Clear plotter
+    let mut pr = p.raster();
+    pr.clear();
+    p = Plotter::new(pr);
+    // Composite
     r.composite_matte(
         (0, 0, 512, 512),
         p.fill(FillRule::NonZero, path, Matte8::new(255)),
@@ -170,6 +205,11 @@ fn main() {
             font::TextAlign::Vertical,
         )
         .0;
+    // Clear plotter
+    let mut pr = p.raster();
+    pr.clear();
+    p = Plotter::new(pr);
+    // Composite
     r.composite_matte(
         (32, 0, 512, 512),
         p.fill(FillRule::NonZero, path, Matte8::new(255)),

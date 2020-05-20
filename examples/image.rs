@@ -27,16 +27,16 @@ fn main() {
     for i in &mut path {
         match i {
             PathOp::Move(Pt(x, y)) => {
-                data = data.move_to((x, y + 256.0));
+                data = data.move_to((x, y));
             }
             PathOp::Line(Pt(x, y)) => {
-                data = data.line_to((x, y + 256.0));
+                data = data.line_to((x, y));
             }
             PathOp::Quad(Pt(cx, cy), Pt(x, y)) => {
-                data = data.quadratic_curve_to((cx, cy + 256.0, x, y + 256.0));
+                data = data.quadratic_curve_to((cx, cy, x, y));
             }
             PathOp::Cubic(Pt(ax, ay), Pt(bx, by), Pt(x, y)) => {
-                data = data.cubic_curve_to((ax, ay + 256.0, bx, by + 256.0, x, y + 256.0));
+                data = data.cubic_curve_to((ax, ay, bx, by, x, y));
             }
             PathOp::Close() => {
                 data = data.close();

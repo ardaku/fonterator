@@ -247,6 +247,7 @@ impl<'a> CharPathIterator<'a> {
                 self.italic = false;
                 return;
             }
+            '\n' => return,
             _ => {}
         }
 

@@ -16,39 +16,61 @@ fn main() {
     let mut p = Plotter::new(Raster::with_clear(2048, 2048));
     let mut r = Raster::with_clear(2048, 2048);
 
-    let path = font
-        .render(
-            STR,
+    let mut start = 0;
+    let mut row = 0;
+    loop {
+        let (path, left) = font.render(
+            &STR[start..],
             2048.0,
             (FONT_SIZE, FONT_SIZE),
-            fonterator::TextAlign::Left,
-        )
-        .0;
+            fonterator::TextAlign::Center,
+        );
+        r.composite_matte(
+            (0, row * 200, 2048, 2048),
+            p.fill(FillRule::NonZero, path, Matte8::new(255)),
+            (),
+            Rgba8p::new(0, 0, 0, 255),
+            SrcOver,
+        );
+        let mut pr = p.raster();
+        pr.clear();
+        p = Plotter::new(pr);
+        // 
+        if left == 0 {
+            break;
+        } else {
+            start += left;
+            row += 1;
+        }
+    }
 
-    r.composite_matte(
-        (0, 0, 2048, 2048),
-        p.fill(FillRule::NonZero, path, Matte8::new(255)),
-        (),
-        Rgba8p::new(0, 0, 0, 255),
-        SrcOver,
-    );
-
-    let path = font
-        .render(
-            STR,
+    let mut start = 0;
+    let mut row = 0;
+    loop {
+        let (path, left) = font.render(
+            &STR[start..],
             2048.0,
             (FONT_SIZE, FONT_SIZE),
             fonterator::TextAlign::Right,
-        )
-        .0;
-
-    r.composite_matte(
-        (0, 1024, 2048, 1024),
-        p.fill(FillRule::NonZero, path, Matte8::new(255)),
-        (),
-        Rgba8p::new(0, 0, 0, 255),
-        SrcOver,
-    );
+        );
+        r.composite_matte(
+            (0, 1024 + row * 200, 2048, 2048),
+            p.fill(FillRule::NonZero, path, Matte8::new(255)),
+            (),
+            Rgba8p::new(0, 0, 0, 255),
+            SrcOver,
+        );
+        let mut pr = p.raster();
+        pr.clear();
+        p = Plotter::new(pr);
+        // 
+        if left == 0 {
+            break;
+        } else {
+            start += left;
+            row += 1;
+        }
+    }
 
     // Save PNG
     let raster = Raster::<SRgba8>::with_raster(&r);
