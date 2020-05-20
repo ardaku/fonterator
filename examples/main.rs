@@ -14,7 +14,7 @@ fn main() {
     let mut r = Raster::with_clear(2048, 2048);
 
     // Render the text
-    let text = "Héllö, Wørłd‽ 野ウサギ a WW野WWウ a wa サW WギWW";
+    let text = "Héllö, Wørłd‽ a"; //野ウサギ a WW野WWウ a wa サW WギWW";
     let mut begin = 0;
     let mut line = 0;
     loop {

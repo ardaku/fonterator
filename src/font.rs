@@ -183,7 +183,7 @@ impl<'a> Font<'a> {
                 },
                 temp: vec![],
                 back: false,
-                path: CharPathIterator::new(self, xy, font_size, vertical, vh),
+                path: CharPathIterator::new(self, xy, size, vertical, vh),
             },
             left_over.unwrap_or_else(|| text.bytes().len()),
         )
@@ -209,8 +209,10 @@ struct CharPathIterator<'a> {
     bold: bool,
     //
     italic: bool,
+    // 
+    font_ascender: f32,
     //
-    font_height: f32,
+    font_size: (f32, f32),
 }
 
 impl<'a> CharPathIterator<'a> {
@@ -219,7 +221,7 @@ impl<'a> CharPathIterator<'a> {
         xy: (f32, f32),
         size: (f32, f32),
         vertical: bool,
-        font_height: f32,
+        font_ascender: f32,
     ) -> Self {
         Self {
             font,
@@ -231,21 +233,27 @@ impl<'a> CharPathIterator<'a> {
             vertical,
             bold: false,
             italic: false,
-            font_height,
+            font_ascender,
+            font_size: (0.0, 0.0),
         }
     }
 
     fn set(&mut self, c: char) {
-        if c == BOLD {
-            self.bold = true;
-            return;
-        } else if c == ITALIC {
-            self.italic = true;
-            return;
-        } else if c == NONE {
-            self.bold = false;
-            self.italic = false;
-            return;
+        match c {
+            BOLD => {
+                self.bold = true;
+                return;
+            }
+            ITALIC => {
+                self.italic = true;
+                return;
+            }
+            NONE => {
+                self.bold = false;
+                self.italic = false;
+                return;
+            }
+            _ => {}
         }
 
         if self.direction == Direction::CheckNext {
@@ -278,6 +286,10 @@ impl<'a> CharPathIterator<'a> {
             self.path.push(PathOp::PenWidth(self.size.0 / 10.0));
         }*/
 
+        let font_height = selected_font.0.height() as f32;
+        self.font_ascender = selected_font.0.ascender() as f32;
+        self.font_size = (self.size.0 / font_height, self.size.1 / font_height);
+
         selected_font.0.outline_glyph(glyph_id, self);
 
         if self.vertical {
@@ -285,7 +297,7 @@ impl<'a> CharPathIterator<'a> {
         } else {
             let advance = match selected_font.0.glyph_hor_advance(glyph_id) {
                 Some(adv) => {
-                    self.size.0 * (f32::from(adv)
+                    self.font_size.0 * (f32::from(adv)
                         + if let Some(last) = self.last {
                             selected_font
                                 .0
@@ -312,58 +324,58 @@ impl<'a> CharPathIterator<'a> {
 
 impl ttf_parser::OutlineBuilder for CharPathIterator<'_> {
     fn move_to(&mut self, x: f32, y: f32) {
-        let y = self.font_height - y;
+        let y = self.font_ascender - y;
         println!("MV {} {}", x, y);
         self.path.push(PathOp::Move(Pt(
-            x * self.size.0 + self.xy.0,
-            y * self.size.1 + self.xy.1,
+            x * self.font_size.0 + self.xy.0,
+            y * self.font_size.1 + self.xy.1,
         )));
     }
 
     fn line_to(&mut self, x: f32, y: f32) {
-        let y = self.font_height - y;
+        let y = self.font_ascender - y;
         println!("LN {} {}", x, y);
         self.path.push(PathOp::Line(Pt(
-            x * self.size.0 + self.xy.0,
-            y * self.size.1 + self.xy.1,
+            x * self.font_size.0 + self.xy.0,
+            y * self.font_size.1 + self.xy.1,
         )));
     }
 
     fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
-        let y1 = self.font_height - y1;
-        let y = self.font_height - y;
+        let y1 = self.font_ascender - y1;
+        let y = self.font_ascender - y;
         println!("QD {} {}", x, y);
         self.path.push(PathOp::Quad(
             Pt(
-                x1 * self.size.0 + self.xy.0,
-                y1 * self.size.1 + self.xy.1,
+                x1 * self.font_size.0 + self.xy.0,
+                y1 * self.font_size.1 + self.xy.1,
             ),
             Pt(
-                x * self.size.0 + self.xy.0,
-                y * self.size.1 + self.xy.1,
+                x * self.font_size.0 + self.xy.0,
+                y * self.font_size.1 + self.xy.1,
             ),
         ));
     }
 
     fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
-        let y1 = self.font_height - y1;
-        let y2 = self.font_height - y2;
-        let y = self.font_height - y;
+        let y1 = self.font_ascender - y1;
+        let y2 = self.font_ascender - y2;
+        let y = self.font_ascender - y;
     
         println!("CV {} {}", x, y);
     
         self.path.push(PathOp::Cubic(
             Pt(
-                x1 * self.size.0 + self.xy.0,
-                y1 * self.size.1 + self.xy.1,
+                x1 * self.font_size.0 + self.xy.0,
+                y1 * self.font_size.1 + self.xy.1,
             ),
             Pt(
-                x2 * self.size.0 + self.xy.0,
-                y2 * self.size.1 + self.xy.1,
+                x2 * self.font_size.0 + self.xy.0,
+                y2 * self.font_size.1 + self.xy.1,
             ),
             Pt(
-                x * self.size.0 + self.xy.0,
-                y * self.size.1 + self.xy.1,
+                x * self.font_size.0 + self.xy.0,
+                y * self.font_size.1 + self.xy.1,
             ),
         ));
     }
