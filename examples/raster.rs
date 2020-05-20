@@ -1,12 +1,11 @@
 use footile::{FillRule, Plotter};
-use pix::ops::SrcOver;
 use pix::rgb::{Rgba8p, SRgba8};
 use pix::Raster;
 use png_pong::FrameEncoder; // For saving PNG
 
 const FONT_SIZE: f32 = 200.0;
 
-const STR: &'static str = "sphinx of black\nquartz, judge\nmy vow";
+const STR: &str = "sphinx of black\nquartz, judge\nmy vow";
 
 fn main() {
     let font = fonterator::monospace_font();

@@ -1,4 +1,4 @@
-use footile::PathOp;
+use footile::{Pt, PathOp};
 use svg::{
     node::element::{path::Data, Group, Path, Style},
     Document, Node,
@@ -26,16 +26,16 @@ fn main() {
 
     for i in &mut path {
         match i {
-            PathOp::Move(x, y) => {
+            PathOp::Move(Pt(x, y)) => {
                 data = data.move_to((x, y));
             }
-            PathOp::Line(x, y) => {
+            PathOp::Line(Pt(x, y)) => {
                 data = data.line_to((x, y));
             }
-            PathOp::Quad(cx, cy, x, y) => {
+            PathOp::Quad(Pt(cx, cy), Pt(x, y)) => {
                 data = data.quadratic_curve_to((cx, cy, x, y));
             }
-            PathOp::Cubic(ax, ay, bx, by, x, y) => {
+            PathOp::Cubic(Pt(ax, ay), Pt(bx, by), Pt(x, y)) => {
                 data = data.cubic_curve_to((ax, ay, bx, by, x, y));
             }
             PathOp::Close() => {
@@ -45,7 +45,7 @@ fn main() {
         }
     }
 
-    group.append(Path::new().set("d", data.clone()));
+    group.append(Path::new().set("d", data));
 
     // Save the image to an SVG file
     let style =

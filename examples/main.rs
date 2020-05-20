@@ -1,6 +1,7 @@
 use footile::{FillRule, Plotter};
 use pix::ops::SrcOver;
 use pix::rgb::{Rgba8p, SRgba8};
+use pix::matte::Matte8;
 use pix::Raster;
 use png_pong::FrameEncoder; // For saving PNG
 
@@ -9,8 +10,8 @@ fn main() {
     let font = fonterator::monospace_font();
 
     // Init rendering
-    let mut p = Plotter::new(2048, 2048);
-    let mut r = Raster::with_clear(p.width(), p.height());
+    let mut p = Plotter::new(Raster::with_clear(2048, 2048));
+    let mut r = Raster::with_clear(2048, 2048);
 
     // Render the text
     let text = "Héllö, Wørłd‽ 野ウサギ a WW野WWウ a wa サW WギWW";
@@ -27,7 +28,7 @@ fn main() {
         let path: Vec<footile::PathOp> = path.collect();
         r.composite_matte(
             (0, 0, 2048, 2048),
-            p.fill(&path, FillRule::NonZero),
+            p.fill(FillRule::NonZero, &path, Matte8::new(255)),
             (),
             Rgba8p::new(0, 0, 0, 255), /*color*/
             SrcOver,

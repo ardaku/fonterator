@@ -40,11 +40,16 @@ fonterator = "0.7"
 ```
 
 ### Example
-```rust
+```rust,no_run
 use fonterator as font; // For parsing font file.
 use footile::{FillRule, Plotter, PathOp}; // For rendering font text.
 use png_pong::FrameEncoder; // For saving PNG
-use pix::{Raster, rgb::{Rgba8p, SRgba8}, ops::{SrcOver}};
+use pix::{
+    Raster,
+    rgb::{Rgba8p, SRgba8},
+    matte::{Matte8},
+    ops::{SrcOver}
+};
 
 const FONT_SIZE: f32 = 32.0;
 
@@ -58,8 +63,8 @@ fn main() {
     let font = font::monospace_font();
 
     // Init rendering.
-    let mut p = Plotter::new(512, 512);
-    let mut r = Raster::with_clear(p.width(), p.height());
+    let mut p = Plotter::new(Raster::with_clear(512, 512));
+    let mut r = Raster::with_clear(512, 512);
 
     // Render English Left Aligned.
     let path = font.render(
@@ -71,7 +76,7 @@ fn main() {
     let path: Vec<PathOp> = path.collect();
     r.composite_matte(
         (0, 0, 512, 512),
-        p.fill(&path, FillRule::NonZero),
+        p.fill(FillRule::NonZero, &path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),
         SrcOver,
@@ -87,7 +92,7 @@ fn main() {
     let path: Vec<PathOp> = path.collect();
     r.composite_matte(
         (0, 0, 512, 512),
-        p.fill(&path, FillRule::NonZero),
+        p.fill(FillRule::NonZero, &path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),
         SrcOver,
@@ -103,7 +108,7 @@ fn main() {
     let path: Vec<PathOp> = path.collect();
     r.composite_matte(
         (0, 0, 512, 512),
-        p.fill(&path, FillRule::NonZero),
+        p.fill(FillRule::NonZero, &path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),
         SrcOver,
