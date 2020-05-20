@@ -34,7 +34,7 @@ pub const BOLD: char = '\x02'; // Start of Text
 pub const ITALIC: char = '\x03'; // End of Text
 
 #[derive(Debug)]
-struct LangFont<'a>(ttf_parser::Font<'a>, f32);
+struct LangFont<'a>(ttf_parser::Font<'a>);
 
 #[derive(Debug)]
 struct StyledFont<'a> {
@@ -56,9 +56,7 @@ impl<'a> Font<'a> {
 
     /// Add a TTF or OTF font's glyphs to this `Font`.
     pub fn push<B: Into<&'a [u8]>>(mut self, none: B) -> Option<Self> {
-        let none = ttf_parser::Font::from_data(none.into(), 0)?;
-        let em_per_height = f32::from(none.height()).recip();
-        let none = LangFont(none, em_per_height);
+        let none = LangFont(ttf_parser::Font::from_data(none.into(), 0)?);
 
         self.fonts.push(StyledFont { none });
         Some(self)
@@ -75,13 +73,22 @@ impl<'a> Font<'a> {
         &'a self,
         text: &'a str,
         row: f32,
-        wh: (f32, f32),
+        size: (f32, f32),
         text_align: TextAlign,
     ) -> (TextPathIterator<'a>, usize) {
         let mut pixel_length = 0.0;
         let mut last = None;
         let mut left_over = None;
         let mut last_space = 0;
+
+        // Transform font size.
+        let fh = self.fonts[0].none.0.height() as f32;
+        let font_size = (size.0 / fh, size.1 / fh);
+        let vh = self.fonts[0].none.0.ascender() as f32;
+
+        dbg!(fh);
+        dbg!(self.fonts[0].none.0.ascender() as f32);
+        dbg!(self.fonts[0].none.0.descender() as f32);
 
         // First Pass: Get pixel length
         for (i, c) in text.char_indices() {
@@ -117,11 +124,10 @@ impl<'a> Font<'a> {
             };
 
             let selected_font = &self.fonts[index].none;
-            let wh = (wh.0 * selected_font.1, -wh.1 * selected_font.1);
 
             let advance = match selected_font.0.glyph_hor_advance(glyph_id) {
                 Some(adv) => {
-                    (f32::from(adv)
+                    font_size.0 * (f32::from(adv)
                         + if let Some(last) = last {
                             selected_font
                                 .0
@@ -134,7 +140,6 @@ impl<'a> Font<'a> {
                         } else {
                             0f32
                         })
-                        * wh.0
                 }
                 None => 0.0,
             };
@@ -178,7 +183,7 @@ impl<'a> Font<'a> {
                 },
                 temp: vec![],
                 back: false,
-                path: CharPathIterator::new(self, xy, wh, vertical),
+                path: CharPathIterator::new(self, xy, font_size, vertical, vh),
             },
             left_over.unwrap_or_else(|| text.bytes().len()),
         )
@@ -192,8 +197,6 @@ struct CharPathIterator<'a> {
     path: Vec<PathOp>,
     // W & H
     size: (f32, f32),
-    // Multiplied wh.
-    wh: (f32, f32),
     // Return position for X.
     xy: (f32, f32),
     // General direction of the text.
@@ -206,7 +209,8 @@ struct CharPathIterator<'a> {
     bold: bool,
     //
     italic: bool,
-    offset: f32,
+    //
+    font_height: f32,
 }
 
 impl<'a> CharPathIterator<'a> {
@@ -215,19 +219,19 @@ impl<'a> CharPathIterator<'a> {
         xy: (f32, f32),
         size: (f32, f32),
         vertical: bool,
+        font_height: f32,
     ) -> Self {
         Self {
             font,
             path: vec![],
             size,
-            wh: (0.0, 0.0),
             xy,
             direction: Direction::CheckNext,
             last: None,
             vertical,
             bold: false,
             italic: false,
-            offset: 0.0,
+            font_height,
         }
     }
 
@@ -255,7 +259,6 @@ impl<'a> CharPathIterator<'a> {
                 None => {
                     index += 1;
                     if index == self.font.fonts.len() {
-                        // eprintln!("No Glyph for \"{}\" ({})", c, c as u32);
                         index = 0;
                         break self.font.fonts[0]
                             .none
@@ -275,15 +278,6 @@ impl<'a> CharPathIterator<'a> {
             self.path.push(PathOp::PenWidth(self.size.0 / 10.0));
         }*/
 
-        self.wh = (
-            self.size.0 * selected_font.1,
-            -self.size.1 * selected_font.1,
-        );
-        let em_per_unit =
-            f32::from(selected_font.0.units_per_em().ok_or("em").unwrap())
-                .recip();
-        let h = selected_font.1 * self.size.1 / em_per_unit;
-        self.offset = -self.size.1 + h;
         selected_font.0.outline_glyph(glyph_id, self);
 
         if self.vertical {
@@ -291,7 +285,7 @@ impl<'a> CharPathIterator<'a> {
         } else {
             let advance = match selected_font.0.glyph_hor_advance(glyph_id) {
                 Some(adv) => {
-                    (f32::from(adv)
+                    self.size.0 * (f32::from(adv)
                         + if let Some(last) = self.last {
                             selected_font
                                 .0
@@ -304,7 +298,6 @@ impl<'a> CharPathIterator<'a> {
                         } else {
                             0f32
                         })
-                        * self.wh.0
                 }
                 None => 0.0,
             };
@@ -319,45 +312,58 @@ impl<'a> CharPathIterator<'a> {
 
 impl ttf_parser::OutlineBuilder for CharPathIterator<'_> {
     fn move_to(&mut self, x: f32, y: f32) {
+        let y = self.font_height - y;
+        println!("MV {} {}", x, y);
         self.path.push(PathOp::Move(Pt(
-            x * self.wh.0 + self.xy.0,
-            y * self.wh.1 + self.xy.1 + self.offset,
+            x * self.size.0 + self.xy.0,
+            y * self.size.1 + self.xy.1,
         )));
     }
 
     fn line_to(&mut self, x: f32, y: f32) {
+        let y = self.font_height - y;
+        println!("LN {} {}", x, y);
         self.path.push(PathOp::Line(Pt(
-            x * self.wh.0 + self.xy.0,
-            y * self.wh.1 + self.xy.1 + self.offset,
+            x * self.size.0 + self.xy.0,
+            y * self.size.1 + self.xy.1,
         )));
     }
 
     fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
+        let y1 = self.font_height - y1;
+        let y = self.font_height - y;
+        println!("QD {} {}", x, y);
         self.path.push(PathOp::Quad(
             Pt(
-                x1 * self.wh.0 + self.xy.0,
-                y1 * self.wh.1 + self.xy.1 + self.offset,
+                x1 * self.size.0 + self.xy.0,
+                y1 * self.size.1 + self.xy.1,
             ),
             Pt(
-                x * self.wh.0 + self.xy.0,
-                y * self.wh.1 + self.xy.1 + self.offset,
+                x * self.size.0 + self.xy.0,
+                y * self.size.1 + self.xy.1,
             ),
         ));
     }
 
     fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
+        let y1 = self.font_height - y1;
+        let y2 = self.font_height - y2;
+        let y = self.font_height - y;
+    
+        println!("CV {} {}", x, y);
+    
         self.path.push(PathOp::Cubic(
             Pt(
-                x1 * self.wh.0 + self.xy.0,
-                y1 * self.wh.1 + self.xy.1 + self.offset,
+                x1 * self.size.0 + self.xy.0,
+                y1 * self.size.1 + self.xy.1,
             ),
             Pt(
-                x2 * self.wh.0 + self.xy.0,
-                y2 * self.wh.1 + self.xy.1 + self.offset,
+                x2 * self.size.0 + self.xy.0,
+                y2 * self.size.1 + self.xy.1,
             ),
             Pt(
-                x * self.wh.0 + self.xy.0,
-                y * self.wh.1 + self.xy.1 + self.offset,
+                x * self.size.0 + self.xy.0,
+                y * self.size.1 + self.xy.1,
             ),
         ));
     }
