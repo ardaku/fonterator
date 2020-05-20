@@ -37,14 +37,14 @@ fn main() {
     let path = font
         .render(
             english2,
-            (64.0, 0.0, 512.0 - 64.0, 512.0 - FONT_SIZE),
+            512.0 - 64.0,
             (FONT_SIZE, FONT_SIZE),
             font::TextAlign::Left,
         )
         .0;
     let path: Vec<PathOp> = path.collect();
     r.composite_matte(
-        (0, 0, 512, 512),
+        (64, 0, 512 - 64, 512),
         p.fill(FillRule::NonZero, &path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),
@@ -54,14 +54,14 @@ fn main() {
     let path = font
         .render(
             nepali,
-            (64.0, 32.0 * 1.0, 512.0 - 64.0, 512.0 - FONT_SIZE * 2.0),
+            512.0 - 64.0,
             (FONT_SIZE, FONT_SIZE),
             font::TextAlign::Left,
         )
         .0;
     let path: Vec<PathOp> = path.collect();
     r.composite_matte(
-        (0, 0, 512, 512),
+        (64, 32 * 1, 512, 512),
         p.fill(FillRule::NonZero, &path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),
@@ -71,14 +71,14 @@ fn main() {
     let path = font
         .render(
             english,
-            (64.0, 32.0 * 2.0, 512.0 - 64.0, 512.0 - 32.0 * 5.0),
+            512.0 - 64.0,
             (FONT_SIZE, FONT_SIZE),
             font::TextAlign::Center,
         )
         .0;
     let path: Vec<PathOp> = path.collect();
     r.composite_matte(
-        (0, 0, 512, 512),
+        (64, 64, 512, 512),
         p.fill(FillRule::NonZero, &path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),
@@ -88,14 +88,14 @@ fn main() {
     let path = font
         .render(
             arabic,
-            (64.0, 32.0 * 3.0, 512.0 - 64.0, 512.0 - FONT_SIZE * 3.0),
+            512.0 - 64.0,
             (FONT_SIZE, FONT_SIZE),
             font::TextAlign::Right,
         )
         .0;
     let path: Vec<PathOp> = path.collect();
     r.composite_matte(
-        (0, 0, 512, 512),
+        (64, 96, 512, 512),
         p.fill(FillRule::NonZero, &path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),
@@ -105,14 +105,14 @@ fn main() {
     let path = font
         .render(
             hebrew,
-            (64.0, 32.0 * 4.0, 512.0 - 64.0, 512.0 - 32.0 * 4.0),
+            512.0 - 64.0,
             (FONT_SIZE, FONT_SIZE),
             font::TextAlign::Right,
         )
         .0;
     let path: Vec<PathOp> = path.collect();
     r.composite_matte(
-        (0, 0, 512, 512),
+        (64, 128, 512 - 64, 512 - 128),
         p.fill(FillRule::NonZero, &path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),
@@ -122,14 +122,14 @@ fn main() {
     let path = font
         .render(
             nepali,
-            (64.0, 32.0 * 5.0, 512.0 - 64.0, 512.0 - 32.0 * 6.0),
+            512.0 - 64.0,
             (FONT_SIZE, FONT_SIZE),
             font::TextAlign::Center,
         )
         .0;
     let path: Vec<PathOp> = path.collect();
     r.composite_matte(
-        (0, 0, 512, 512),
+        (64, 32 * 5, 512 - 64, 512 - 32 * 5),
         p.fill(FillRule::NonZero, &path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),
@@ -139,14 +139,14 @@ fn main() {
     let path = font
         .render(
             english,
-            (64.0, 32.0 * 6.0, 512.0 - 64.0, 512.0 - FONT_SIZE),
+            512.0 - 64.0,
             (FONT_SIZE, FONT_SIZE * 2.0),
             font::TextAlign::Right,
         )
         .0;
     let path: Vec<PathOp> = path.collect();
     r.composite_matte(
-        (0, 0, 512, 512),
+        (64, 32 * 6, 512 - 64, 512 - 32 * 6),
         p.fill(FillRule::NonZero, &path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),
@@ -156,7 +156,7 @@ fn main() {
     let path = font
         .render(
             korean,
-            (0.0, 0.0, 512.0, 512.0 - 32.0 * 7.0),
+            512.0 - 32.0 * 7.0,
             (FONT_SIZE, FONT_SIZE),
             font::TextAlign::Vertical,
         )
@@ -173,14 +173,14 @@ fn main() {
     let path = font
         .render(
             japanese,
-            (32.0, 0.0, 512.0, 512.0 - 32.0 * 7.0),
+            512.0 - 32.0 * 7.0,
             (FONT_SIZE, FONT_SIZE),
             font::TextAlign::Vertical,
         )
         .0;
     let path: Vec<PathOp> = path.collect();
     r.composite_matte(
-        (0, 0, 512, 512),
+        (32, 0, 512, 512),
         p.fill(FillRule::NonZero, &path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),

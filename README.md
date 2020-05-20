@@ -69,13 +69,13 @@ fn main() {
     // Render English Left Aligned.
     let path = font.render(
         english,
-        (64.0, 0.0, 512.0 - 64.0, 512.0 - FONT_SIZE),
+        512.0 - 64.0,
         (FONT_SIZE, FONT_SIZE),
         font::TextAlign::Left
     ).0;
     let path: Vec<PathOp> = path.collect();
     r.composite_matte(
-        (0, 0, 512, 512),
+        (64, 0, 512, 512),
         p.fill(FillRule::NonZero, &path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),
@@ -85,7 +85,7 @@ fn main() {
     // Render Korean Vertically
     let path = font.render(
         korean,
-        (0.0, 0.0, 512.0, 512.0 - 32.0 * 7.0),
+        512.0,
         (FONT_SIZE, FONT_SIZE),
         font::TextAlign::Vertical
     ).0;
@@ -101,13 +101,13 @@ fn main() {
     // Render Japanese Vertically
     let path = font.render(
         japanese,
-        (32.0, 0.0, 512.0, 512.0 - 32.0 * 7.0),
+        512.0 - 32.0 * 7.0,
         (FONT_SIZE, FONT_SIZE),
         font::TextAlign::Vertical
     ).0;
     let path: Vec<PathOp> = path.collect();
     r.composite_matte(
-        (0, 0, 512, 512),
+        (32, 0, 512, 512),
         p.fill(FillRule::NonZero, &path, Matte8::new(255)),
         (),
         Rgba8p::new(0, 0, 0, 255),

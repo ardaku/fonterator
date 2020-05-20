@@ -66,14 +66,15 @@ impl<'a> Font<'a> {
 
     /// Render some text.  Returns an iterator and how many characters were
     /// rendered inside the bounding box.
-    /// - `text`: text to render.
-    /// - `bbox`: x, y, width, height.
-    /// - `wh`: the size of each character in X & Y dimensions.
-    /// - `text_align`: how the text is aligned
+    ///  - `text`: text to render.
+    ///  - `row`: x (Left/Right align) or y (Up/Down align) offset where to stop
+    ///    rendering.
+    ///  - `wh`: the size of each character in X & Y dimensions.
+    ///  - `text_align`: how the text is aligned
     pub fn render(
         &'a self,
         text: &'a str,
-        bbox: (f32, f32, f32, f32),
+        row: f32,
         wh: (f32, f32),
         text_align: TextAlign,
     ) -> (TextPathIterator<'a>, usize) {
@@ -90,9 +91,9 @@ impl<'a> Font<'a> {
                     left_over = Some(i);
                     break;
                 }
-                _ if c == BOLD => continue,
-                _ if c == ITALIC => continue,
-                _ if c == NONE => continue,
+                chr if chr == BOLD => continue,
+                chr if chr == ITALIC => continue,
+                chr if chr == NONE => continue,
                 _ => {}
             }
 
@@ -141,7 +142,7 @@ impl<'a> Font<'a> {
             pixel_length += advance;
 
             // Extends past the width of the bounding box.
-            if pixel_length > bbox.2 {
+            if pixel_length > row {
                 if last_space != 0 {
                     left_over = Some(last_space);
                     break;
@@ -154,20 +155,26 @@ impl<'a> Font<'a> {
             last = Some(glyph_id);
         }
 
-        let mut bbox = (bbox.0, bbox.1, bbox.0 + bbox.2, bbox.1 + bbox.3);
+        let mut bbox = (0.0, 0.0, 0.0, 0.0);
         let mut vertical = false;
 
         match text_align {
             TextAlign::Left => { /* don't adjust */ }
-            TextAlign::Right => bbox.0 = bbox.2 - pixel_length,
+            TextAlign::Right => bbox.0 = row - pixel_length,
             TextAlign::Center => {
-                bbox.0 = (bbox.0 + bbox.2 - pixel_length) * 0.5
+                bbox.0 = (row - pixel_length) * 0.5
             }
             TextAlign::Justified => { /* don't adjust */ }
             TextAlign::Vertical => vertical = true,
         }
 
-        bbox.1 += wh.1;
+        if vertical {
+            bbox.2 = wh.0;
+            bbox.3 = row;
+        } else {
+            bbox.2 = row;
+            bbox.3 = wh.1;
+        }
 
         // Second Pass: Get `PathOp`s
         (

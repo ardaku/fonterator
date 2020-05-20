@@ -16,8 +16,8 @@ fn main() {
     // Loop through the glyphs in the text, adding to the SVG.
     let mut path = font
         .render(
-            "DIVE and…    ‽é¿?üæ", /*text*/
-            (0.0, 0.0, 2048.0, 256.0),     /*position*/
+            "DIVE and…    ‽é¿?üæ",  /*text*/
+            2048.0,                 /*width*/
             (FONT_SIZE, FONT_SIZE),        /*size*/
             fonterator::TextAlign::Left,
         )
@@ -27,16 +27,16 @@ fn main() {
     for i in &mut path {
         match i {
             PathOp::Move(Pt(x, y)) => {
-                data = data.move_to((x, y));
+                data = data.move_to((x, y + 256.0));
             }
             PathOp::Line(Pt(x, y)) => {
-                data = data.line_to((x, y));
+                data = data.line_to((x, y + 256.0));
             }
             PathOp::Quad(Pt(cx, cy), Pt(x, y)) => {
-                data = data.quadratic_curve_to((cx, cy, x, y));
+                data = data.quadratic_curve_to((cx, cy + 256.0, x, y + 256.0));
             }
             PathOp::Cubic(Pt(ax, ay), Pt(bx, by), Pt(x, y)) => {
-                data = data.cubic_curve_to((ax, ay, bx, by, x, y));
+                data = data.cubic_curve_to((ax, ay + 256.0, bx, by + 256.0, x, y + 256.0));
             }
             PathOp::Close() => {
                 data = data.close();

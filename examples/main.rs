@@ -20,14 +20,14 @@ fn main() {
     loop {
         let (path, l) = font.render(
             &text[begin..],                             /*text*/
-            (0.0, line as f32 * 256.0, 2048.0, 2048.0), /*bbox*/
+            2048.0, /*bbox*/
             (256.0, 256.0),                             /*size*/
             fonterator::TextAlign::Left,
         );
         println!("{} {}", begin, begin + l);
         let path: Vec<footile::PathOp> = path.collect();
         r.composite_matte(
-            (0, 0, 2048, 2048),
+            (0, line * 256, 2048, 2048),
             p.fill(FillRule::NonZero, &path, Matte8::new(255)),
             (),
             Rgba8p::new(0, 0, 0, 255), /*color*/
