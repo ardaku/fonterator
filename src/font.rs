@@ -34,7 +34,7 @@ pub const BOLD: char = '\x02'; // Start of Text
 pub const ITALIC: char = '\x03'; // End of Text
 
 #[derive(Debug)]
-struct LangFont<'a>(ttf_parser::Font<'a>);
+struct LangFont<'a>(ttf_parser::Face<'a>);
 
 #[derive(Debug)]
 struct StyledFont<'a> {
@@ -56,7 +56,7 @@ impl<'a> Font<'a> {
 
     /// Add a TTF or OTF font's glyphs to this `Font`.
     pub fn push<B: Into<&'a [u8]>>(mut self, none: B) -> Option<Self> {
-        let none = LangFont(ttf_parser::Font::from_data(none.into(), 0)?);
+        let none = LangFont(ttf_parser::Face::from_slice(none.into(), 0)?);
 
         self.fonts.push(StyledFont { none });
         Some(self)
