@@ -56,7 +56,7 @@ impl<'a> Font<'a> {
 
     /// Add a TTF or OTF font's glyphs to this `Font`.
     pub fn push<B: Into<&'a [u8]>>(mut self, none: B) -> Option<Self> {
-        let none = LangFont(ttf_parser::Face::from_slice(none.into(), 0)?);
+        let none = LangFont(ttf_parser::Face::from_slice(none.into(), 0).ok()?);
 
         self.fonts.push(StyledFont { none });
         Some(self)
