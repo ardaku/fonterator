@@ -3,7 +3,7 @@ use pix::matte::Matte8;
 use pix::ops::SrcOver;
 use pix::rgb::{Rgba8p, SRgba8};
 use pix::Raster;
-use png_pong::FrameEncoder; // For saving PNG
+use png_pong::{PngRaster, Encoder}; // For saving PNG
 
 fn main() {
     // Load the default FontGroup (font and fallbacks).
@@ -45,9 +45,9 @@ fn main() {
     }
 
     // Save PNG
-    let raster = Raster::<SRgba8>::with_raster(&r);
+    let raster = PngRaster::Rgba8(Raster::<SRgba8>::with_raster(&r));
     let mut out_data = Vec::new();
-    let mut encoder = FrameEncoder::new(&mut out_data);
+    let mut encoder = Encoder::new(&mut out_data).into_step_enc();
     encoder.still(&raster).expect("Failed to add frame");
     std::fs::write("main.png", out_data).expect("Failed to save image");
 }

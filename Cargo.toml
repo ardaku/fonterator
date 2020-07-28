@@ -39,7 +39,7 @@ version = "0.8"
 
 [dev-dependencies]
 svg = "0.8"
-png_pong = "0.5"
+png_pong = "0.6"
 pix = "0.13"
 
 [package.metadata.docs.rs]
