@@ -44,7 +44,7 @@ fonterator = "0.8"
 use fonterator as font; // For parsing font file.
 // For rendering text
 use footile::{FillRule, Plotter, PathOp, Transform};
-use png_pong::FrameEncoder; // For saving PNG
+use png_pong::Encoder; // For saving PNG
 use pix::{
     Raster,
     rgb::{Rgba8p, SRgba8},
@@ -119,7 +119,7 @@ fn main() {
     // Save PNG
     let raster = Raster::<SRgba8>::with_raster(&r);
     let mut out_data = Vec::new();
-    let mut encoder = FrameEncoder::new(&mut out_data);
+    let mut encoder = Encoder::new(&mut out_data).into_step_enc();
     encoder.still(&raster).expect("Failed to add frame");
     std::fs::write("out.png", out_data).expect("Failed to save image");
 }
