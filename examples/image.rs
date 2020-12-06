@@ -7,7 +7,7 @@ use svg::{
 const FONT_SIZE: f32 = 256.0;
 
 fn main() {
-    let font = fonterator::monospace_font();
+    let mut font = fonterator::monospace_font();
 
     // Initialize variables need to write to SVG
     let mut group = Group::new();
@@ -16,7 +16,7 @@ fn main() {
     // Loop through the glyphs in the text, adding to the SVG.
     let mut path = font
         .render(
-            "…hello‽é¿?üæ 2⸘", /*text*/
+            "…hello‽É¿?üæ 2⸘", /*text*/
             2048.0,                      /*width*/
             fonterator::TextAlign::Left,
         )

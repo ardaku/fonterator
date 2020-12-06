@@ -10,20 +10,20 @@ const FONT_SIZE: f32 = 200.0;
 const STR: &str = "sphinx of black\nquartz, judge\nmy vow";
 
 fn main() {
-    let font = fonterator::monospace_font();
+    let mut font = fonterator::monospace_font();
 
     // Init rendering
     let mut p = Plotter::new(Raster::with_clear(2048, 2048));
     let mut r = Raster::with_clear(2048, 2048);
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
+    // FIXME: Align Center
     let mut start = 0;
     let mut row = 0;
     loop {
         let (path, left) = font.render(
             &STR[start..],
             2048.0 / FONT_SIZE,
-            fonterator::TextAlign::Center,
         );
         r.composite_matte(
             (0, row * 200, 2048, 2048),
@@ -38,21 +38,21 @@ fn main() {
         p = Plotter::new(pr);
         p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
         //
-        if left == 0 {
-            break;
-        } else {
+        if let Some(left) = left {
             start += left;
             row += 1;
+        } else {
+            break;
         }
     }
 
+    // FIXME: Align Right
     let mut start = 0;
     let mut row = 0;
     loop {
         let (path, left) = font.render(
             &STR[start..],
             2048.0 / FONT_SIZE,
-            fonterator::TextAlign::Right,
         );
         r.composite_matte(
             (0, 1024 + row * 200, 2048, 2048),
@@ -67,11 +67,11 @@ fn main() {
         p = Plotter::new(pr);
         p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
         //
-        if left == 0 {
-            break;
-        } else {
+        if let Some(left) = left {
             start += left;
             row += 1;
+        } else {
+            break;
         }
     }
 

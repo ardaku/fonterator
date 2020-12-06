@@ -13,7 +13,7 @@ const FONT_SIZE: f32 = 32.0;
 fn main() {
     // Most common
     let english = "Raster Text With Font"; // LEFT-RIGHT
-    let english2 = &format!("{}Raster Text With Font", font::BOLD); // LEFT-RIGHT
+    //let english2 = &format!("{}Raster Text With Font", font::BOLD); // LEFT-RIGHT
     let nepali = "फन्टको साथ रास्टर पाठ"; // LEFT-RIGHT
     let arabic = "النقطية النص مع الخط"; // RIGHT-LEFT
     let hebrew = "טקסט רסטר עם גופן"; // RIGHT-LEFT
@@ -27,14 +27,14 @@ fn main() {
     let _hanunuo = "ᜱᜨᜳᜨᜳᜢ";
 
     // Init font, and paths.
-    let font = font::monospace_font();
+    let mut font = font::monospace_font();
 
     // Init rendering.
     let mut p = Plotter::new(Raster::with_clear(512, 512));
     let mut r = Raster::with_clear(512, 512);
 
     // Render paths.
-    p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
+    /*p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
     let path = font
         .render(english2, (512.0 - 64.0) / FONT_SIZE, font::TextAlign::Left)
         .0;
@@ -48,7 +48,7 @@ fn main() {
     // Reset plotter
     let mut pr = p.raster();
     pr.clear();
-    p = Plotter::new(pr);
+    p = Plotter::new(pr);*/
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font

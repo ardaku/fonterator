@@ -9,42 +9,100 @@
 
 use crate::direction::{direction, Direction};
 use footile::{PathOp, Pt};
-use ttf_parser::kern::Subtable;
+use ttf_parser::{Face, kern::Subtable, OutlineBuilder, GlyphId};
+use rustybuzz::{Face as FaceShaper, GlyphBuffer, UnicodeBuffer, GlyphInfo, GlyphPosition};
 
-/// Text alignment.
-#[derive(Copy, Clone, Debug)]
-pub enum TextAlign {
-    /// Align text to the left.
-    Left,
-    /// Align text to the center.
-    Center,
-    /// Align text to the right.
-    Right,
-    /// Justify text.
-    Justified,
-    /// Vertical text.
-    Vertical,
+struct LangFont<'a>(Face<'a>, FaceShaper<'a>);
+
+struct Outliner<'a> {
+    // Path to write out to.
+    path: &'a mut Vec<PathOp>,
+    // How tall the font is (used to invert the Y axis).
+    ascender: f32,
+    // Translated X and Y positions.
+    offset: (f32, f32),
+    // Font scaling.
+    scale: f32,
 }
 
-/// No emphasis
-pub const NONE: char = '\x01'; // Start of Heading
-/// Bold
-pub const BOLD: char = '\x02'; // Start of Text
-/// Italic
-pub const ITALIC: char = '\x03'; // End of Text
+impl OutlineBuilder for Outliner<'_> {
+    fn move_to(&mut self, x: f32, y: f32) {
+        let x = x + self.offset.0;
+        let y = self.ascender - (y + self.offset.1);
+        self.path.push(PathOp::Move(Pt(x * self.scale, y * self.scale)));
+    }
 
-#[derive(Debug)]
-struct LangFont<'a>(ttf_parser::Face<'a>);
+    fn line_to(&mut self, x: f32, y: f32) {
+        let x = x + self.offset.0;
+        let y = self.ascender - (y + self.offset.1);
+        self.path.push(PathOp::Line(Pt(x * self.scale, y * self.scale)));
+    }
 
-#[derive(Debug)]
+    fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
+        let x = x + self.offset.0;
+        let x1 = x1 + self.offset.0;
+        let y = self.ascender - (y + self.offset.1);
+        let y1 = self.ascender - (y1 + self.offset.1);
+        self.path.push(PathOp::Quad(
+            Pt(x1 * self.scale, y1 * self.scale),
+            Pt(x * self.scale, y * self.scale),
+        ));
+    }
+
+    fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
+        let x = x + self.offset.0;
+        let x1 = x1 + self.offset.0;
+        let x2 = x2 + self.offset.0;
+        let y = self.ascender - (y + self.offset.1);
+        let y1 = self.ascender - (y1 + self.offset.1);
+        let y2 = self.ascender - (y2 + self.offset.1);
+
+        self.path.push(PathOp::Cubic(
+            Pt(x1 * self.scale, y1 * self.scale),
+            Pt(x2 * self.scale, y2 * self.scale),
+            Pt(x * self.scale, y * self.scale),
+        ));
+    }
+
+    fn close(&mut self) {
+        self.path.push(PathOp::Close());
+    }
+}
+
 struct StyledFont<'a> {
+    // Buffer associated with this font.
+    glyph_buffer: Option<GlyphBuffer>,
     // Required
     none: LangFont<'a>,
 }
 
+impl<'a> StyledFont<'a> {
+    fn path(&self, index: usize, path: &mut Vec<PathOp>, offset: &mut (i32, i32)) {
+        let GlyphInfo { codepoint, cluster: _, .. } = self.glyph_buffer.as_ref().unwrap().glyph_infos()[index];
+        let GlyphPosition {
+            x_advance, y_advance, x_offset, y_offset, ..
+        } = self.glyph_buffer.as_ref().unwrap().glyph_positions()[index];
+
+        let glyph_id = GlyphId(codepoint as u16);
+        let scale = (self.none.0.height() as f32).recip();
+        
+        // let xy = (xy.0 + x_offset as f32 * scale, -xy.1 - y_offset as f32 * scale);
+        let ascender = self.none.0.ascender() as f32 * scale;
+        let x_offset = x_offset + offset.0;
+        let y_offset = y_offset + offset.1;
+        offset.0 += x_advance;
+        offset.1 += y_advance;
+        let offset = (x_offset as f32, (y_offset - self.none.0.ascender() as i32) as f32);
+        
+        self.none.0.outline_glyph(glyph_id, &mut Outliner { path, ascender, scale, offset });
+    }
+}
+
 /// A collection of TTF/OTF fonts used as a single font.
-#[derive(Default, Debug)]
+#[allow(missing_debug_implementations)]
+#[derive(Default)]
 pub struct Font<'a> {
+    paths: Vec<PathOp>,
     fonts: Vec<StyledFont<'a>>,
 }
 
@@ -55,27 +113,80 @@ impl<'a> Font<'a> {
     }
 
     /// Add a TTF or OTF font's glyphs to this `Font`.
-    pub fn push<B: Into<&'a [u8]>>(mut self, none: B) -> Option<Self> {
-        let none = LangFont(ttf_parser::Face::from_slice(none.into(), 0).ok()?);
+    pub fn push<B: Into<&'a [u8]>>(mut self, font_data: B) -> Option<Self> {
+        let font_data = font_data.into();
+        let face = (
+            Face::from_slice(font_data, 0).ok()?,
+            FaceShaper::from_slice(font_data, 0)?,
+        );
+        let none = LangFont(face.0, face.1);
 
-        self.fonts.push(StyledFont { none });
+        self.fonts.push(StyledFont { none, glyph_buffer: None });
         Some(self)
     }
 
-    /// Render some text.  Returns an iterator and how many characters were
-    /// rendered inside the bounding box.
+    /// Render some text.  Returns an iterator and index within the `&str` where
+    /// rendering stopped.
     ///  - `text`: text to render.
     ///  - `row`: x (Left/Right align) or y (Up/Down align) offset where to stop
     ///    rendering.
-    ///  - `wh`: the size of each character in X & Y dimensions.
-    ///  - `text_align`: how the text is aligned
-    pub fn render(
-        &'a self,
-        text: &'a str,
+    pub fn render<'b>(
+        &'b mut self,
+        text: &str,
         row: f32,
-        text_align: TextAlign,
-    ) -> (TextPathIterator<'a>, usize) {
-        let mut pixel_length = 0.0;
+    ) -> (TextPathIterator<'a, 'b>, Option<usize>) {
+        let row: f64 = row.into();
+        let row: i32 = (u16::MAX as f64 * row) as i32;
+        let mut text = text;
+
+        // Look for newlines and spaces to handle specially.
+        let mut left_over = None;
+        for (i, c) in text.char_indices() {
+            match c {
+                // ' ' => last_space = i,
+                '\n' => {
+                    left_over = Some(i + 1);
+                    text = &text[..i];
+                    break;
+                }
+                _ => {}
+            }
+        }
+
+        // Replace glyph buffer using text.
+        // FIXME: Currently only using first font.
+        self.fonts[0].glyph_buffer = Some({
+            let mut unicode_buffer = if let Some(buf) = self.fonts[0].glyph_buffer.take() {
+                buf.clear()
+            } else {
+                UnicodeBuffer::new()
+            };
+            unicode_buffer.push_str(text);
+            rustybuzz::shape(&self.fonts[0].none.1, &[], unicode_buffer)
+        });
+
+        // Pass over glyphs, looking for where to stop.
+        let positions = self.fonts[0].glyph_buffer.as_ref().unwrap().glyph_positions();
+        let infos = self.fonts[0].glyph_buffer.as_ref().unwrap().glyph_infos();
+        let mut until = positions.len();
+        'crop: for (index, glyph) in positions.iter().enumerate() {
+            if glyph.x_offset > row {
+                left_over = Some(infos[index].cluster as usize);
+                until = index;
+                break 'crop;
+            }
+        }
+        
+        // Return iterator over PathOps and index to start on next call.
+        (TextPathIterator {
+            fontc: self,
+            until,
+            index: 0,
+            path_i: 0,
+            offset: (0, 0),
+        }, left_over)
+
+        /*let mut pixel_length = 0.0;
         let mut last = None;
         let mut left_over = None;
         let mut last_space = 0;
@@ -88,9 +199,6 @@ impl<'a> Font<'a> {
                     left_over = Some(i + 1);
                     break;
                 }
-                chr if chr == BOLD => continue,
-                chr if chr == ITALIC => continue,
-                chr if chr == NONE => continue,
                 _ => {}
             }
 
@@ -158,28 +266,15 @@ impl<'a> Font<'a> {
         let mut xy = (0.0, 0.0);
         let mut vertical = false;
 
-        match text_align {
-            TextAlign::Left => { /* don't adjust */ }
-            TextAlign::Right => xy.0 = row - pixel_length,
-            TextAlign::Center => xy.0 = (row - pixel_length) * 0.5,
-            TextAlign::Justified => { /* don't adjust */ }
-            TextAlign::Vertical => vertical = true,
-        }
-
         // Second Pass: Get `PathOp`s
         (
             TextPathIterator {
-                text: if let Some(i) = left_over {
-                    text[..i].chars().peekable()
-                } else {
-                    text.chars().peekable()
-                },
                 temp: vec![],
                 back: false,
                 path: CharPathIterator::new(self, xy, vertical),
             },
             left_over.unwrap_or_else(|| text.bytes().len()),
-        )
+        )*/
     }
 }
 
@@ -193,13 +288,9 @@ struct CharPathIterator<'a> {
     // General direction of the text.
     direction: Direction,
     // Last character
-    last: Option<ttf_parser::GlyphId>,
+    last: Option<GlyphId>,
     //
     vertical: bool,
-    //
-    bold: bool,
-    //
-    italic: bool,
     //
     font_ascender: f32,
     //
@@ -215,28 +306,13 @@ impl<'a> CharPathIterator<'a> {
             direction: Direction::CheckNext,
             last: None,
             vertical,
-            bold: false,
-            italic: false,
             font_ascender: 0.0,
             font_size: (0.0, 0.0),
         }
     }
 
     fn set(&mut self, c: char) {
-        match c {
-            BOLD => {
-                self.bold = true;
-                return;
-            }
-            ITALIC => {
-                self.italic = true;
-                return;
-            }
-            NONE => {
-                self.bold = false;
-                self.italic = false;
-                return;
-            }
+        /*match c {
             '\n' => return,
             _ => {}
         }
@@ -304,65 +380,7 @@ impl<'a> CharPathIterator<'a> {
 
         self.path.reverse();
 
-        self.last = Some(glyph_id);
-    }
-}
-
-impl ttf_parser::OutlineBuilder for CharPathIterator<'_> {
-    fn move_to(&mut self, x: f32, y: f32) {
-        let y = self.font_ascender - y;
-        self.path.push(PathOp::Move(Pt(
-            x * self.font_size.0 + self.xy.0,
-            y * self.font_size.1 + self.xy.1,
-        )));
-    }
-
-    fn line_to(&mut self, x: f32, y: f32) {
-        let y = self.font_ascender - y;
-        self.path.push(PathOp::Line(Pt(
-            x * self.font_size.0 + self.xy.0,
-            y * self.font_size.1 + self.xy.1,
-        )));
-    }
-
-    fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
-        let y1 = self.font_ascender - y1;
-        let y = self.font_ascender - y;
-        self.path.push(PathOp::Quad(
-            Pt(
-                x1 * self.font_size.0 + self.xy.0,
-                y1 * self.font_size.1 + self.xy.1,
-            ),
-            Pt(
-                x * self.font_size.0 + self.xy.0,
-                y * self.font_size.1 + self.xy.1,
-            ),
-        ));
-    }
-
-    fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
-        let y1 = self.font_ascender - y1;
-        let y2 = self.font_ascender - y2;
-        let y = self.font_ascender - y;
-
-        self.path.push(PathOp::Cubic(
-            Pt(
-                x1 * self.font_size.0 + self.xy.0,
-                y1 * self.font_size.1 + self.xy.1,
-            ),
-            Pt(
-                x2 * self.font_size.0 + self.xy.0,
-                y2 * self.font_size.1 + self.xy.1,
-            ),
-            Pt(
-                x * self.font_size.0 + self.xy.0,
-                y * self.font_size.1 + self.xy.1,
-            ),
-        ));
-    }
-
-    fn close(&mut self) {
-        self.path.push(PathOp::Close());
+        self.last = Some(glyph_id);*/
     }
 }
 
@@ -376,22 +394,43 @@ impl Iterator for CharPathIterator<'_> {
 
 /// Iterator that generates path from characters.
 #[allow(missing_debug_implementations)]
-pub struct TextPathIterator<'a> {
-    // The text that we're parsing.
-    text: std::iter::Peekable<std::str::Chars<'a>>,
-    // Temporary text.
-    temp: Vec<char>,
-    // Backwards text.
-    back: bool,
-    // Path for the current character.
-    path: CharPathIterator<'a>,
+pub struct TextPathIterator<'a, 'b> {
+    // Contains reusable glyph and path buffers.
+    fontc: &'b mut Font<'a>,
+    // Index to stop rendering at.
+    until: usize,
+    // Current glyph index.
+    index: usize,
+    // Index for `PathOp`s.
+    path_i: usize,
+    // x and y offset.
+    offset: (i32, i32),
 }
 
-impl Iterator for TextPathIterator<'_> {
+impl Iterator for TextPathIterator<'_, '_> {
     type Item = PathOp;
 
     fn next(&mut self) -> Option<PathOp> {
-        if let Some(op) = self.path.next() {
+        // First, check for remaining PathOp's in the glyph path buffer.
+        if self.path_i != self.fontc.paths.len() {
+            let path_op = self.fontc.paths[self.path_i];
+            self.path_i += 1;
+            return Some(path_op);
+        }
+        // Because no path ops were left, clear buffer for reuse.
+        self.fontc.paths.clear();
+        self.path_i = 0;
+        // Check for remaining glyphs in the GlyphBuffer.
+        if self.index != self.until {
+            self.fontc.fonts[0].path(self.index, &mut self.fontc.paths, &mut self.offset);
+            self.index += 1;
+            self.next()
+        } else {
+            None
+        }
+    }
+
+    /*  if let Some(op) = self.path.next() {
             Some(op)
         } else if let Some(c) = self.text.peek() {
             let dir = direction(*c);
@@ -423,7 +462,7 @@ impl Iterator for TextPathIterator<'_> {
         } else {
             None
         }
-    }
+    }*/
 }
 
 /// Get a monospace font.  Requires feature = "monospace-font", enabled by default.
