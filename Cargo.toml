@@ -35,7 +35,7 @@ unicode-script = "0.5" # For calculating text direction.
 
 # For reading TTF/OTF files
 [dependencies.ttf-parser]
-version = "0.8"
+version = "0.10"
 
 [dev-dependencies]
 svg = "0.8"
