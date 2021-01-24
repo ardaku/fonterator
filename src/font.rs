@@ -49,7 +49,7 @@ pub struct Font<'a> {
 }
 
 impl<'a> Font<'a> {
-    /// Create a new `Font`.  Add glyphs with `add()`.
+    /// Create a new `Font`.  Add glyphs with `push()`.
     pub fn new() -> Self {
         Self::default()
     }
