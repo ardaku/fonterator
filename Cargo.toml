@@ -38,7 +38,7 @@ unicode-script = "0.5" # For calculating text direction.
 version = "0.8"
 
 [dev-dependencies]
-svg = "0.8"
+svg = "0.9"
 png_pong = "0.7"
 pix = "0.13"
 
