@@ -18,7 +18,7 @@ fn main() {
         .render(
             "…hello‽É¿?üæ 2⸘", /*text*/
             2048.0,                      /*width*/
-            fonterator::TextAlign::Left,
+            // fonterator::TextAlign::Left,
         )
         .0;
     data = Data::new();
