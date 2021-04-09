@@ -67,8 +67,10 @@ impl<'a> Font<'a> {
     ///  - `text`: text to render.
     ///  - `row`: x (Left/Right align) or y (Up/Down align) offset where to stop
     ///    rendering.
-    ///  - `wh`: the size of each character in X & Y dimensions.
     ///  - `text_align`: how the text is aligned
+    /// 
+    ///  Returns an iterator which generates the path from characters (see [`TextPathIterator`])
+    ///  and a number indicating what was leftover
     pub fn render(
         &'a self,
         text: &'a str,
@@ -374,7 +376,7 @@ impl Iterator for CharPathIterator<'_> {
     }
 }
 
-/// Iterator that generates path from characters.
+/// Iterator that generates a path from characters.
 #[allow(missing_debug_implementations)]
 pub struct TextPathIterator<'a> {
     // The text that we're parsing.
@@ -445,7 +447,7 @@ pub fn monospace_font() -> Font<'static> {
         .unwrap()
 }
 
-/// Get a monospace font.  Requires feature = "normal-font".
+/// Get a normal font.  Requires feature = "normal-font".
 #[cfg(feature = "normal-font")]
 pub fn normal_font() -> Font<'static> {
     const FONTA: &[u8] = include_bytes!("font/dejavu/Sans.ttf");
