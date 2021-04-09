@@ -9,8 +9,10 @@
 
 use crate::direction::{direction, Direction};
 use footile::{PathOp, Pt};
-use ttf_parser::{Face, kern::Subtable, OutlineBuilder, GlyphId};
-use rustybuzz::{Face as FaceShaper, GlyphBuffer, UnicodeBuffer, GlyphInfo, GlyphPosition};
+use rustybuzz::{
+    Face as FaceShaper, GlyphBuffer, GlyphInfo, GlyphPosition, UnicodeBuffer,
+};
+use ttf_parser::{kern::Subtable, Face, GlyphId, OutlineBuilder};
 
 struct LangFont<'a>(Face<'a>, FaceShaper<'a>);
 
@@ -29,13 +31,15 @@ impl OutlineBuilder for Outliner<'_> {
     fn move_to(&mut self, x: f32, y: f32) {
         let x = x + self.offset.0;
         let y = self.ascender - (y + self.offset.1);
-        self.path.push(PathOp::Move(Pt(x * self.scale, y * self.scale)));
+        self.path
+            .push(PathOp::Move(Pt(x * self.scale, y * self.scale)));
     }
 
     fn line_to(&mut self, x: f32, y: f32) {
         let x = x + self.offset.0;
         let y = self.ascender - (y + self.offset.1);
-        self.path.push(PathOp::Line(Pt(x * self.scale, y * self.scale)));
+        self.path
+            .push(PathOp::Line(Pt(x * self.scale, y * self.scale)));
     }
 
     fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
@@ -77,24 +81,48 @@ struct StyledFont<'a> {
 }
 
 impl<'a> StyledFont<'a> {
-    fn path(&self, index: usize, path: &mut Vec<PathOp>, offset: &mut (i32, i32)) {
-        let GlyphInfo { codepoint, cluster: _, .. } = self.glyph_buffer.as_ref().unwrap().glyph_infos()[index];
+    fn path(
+        &self,
+        index: usize,
+        path: &mut Vec<PathOp>,
+        offset: &mut (i32, i32),
+    ) {
+        let GlyphInfo {
+            codepoint,
+            cluster: _,
+            ..
+        } = self.glyph_buffer.as_ref().unwrap().glyph_infos()[index];
         let GlyphPosition {
-            x_advance, y_advance, x_offset, y_offset, ..
+            x_advance,
+            y_advance,
+            x_offset,
+            y_offset,
+            ..
         } = self.glyph_buffer.as_ref().unwrap().glyph_positions()[index];
 
         let glyph_id = GlyphId(codepoint as u16);
         let scale = (self.none.0.height() as f32).recip();
-        
+
         // let xy = (xy.0 + x_offset as f32 * scale, -xy.1 - y_offset as f32 * scale);
         let ascender = self.none.0.ascender() as f32 * scale;
         let x_offset = x_offset + offset.0;
         let y_offset = y_offset + offset.1;
         offset.0 += x_advance;
         offset.1 += y_advance;
-        let offset = (x_offset as f32, (y_offset - self.none.0.ascender() as i32) as f32);
-        
-        self.none.0.outline_glyph(glyph_id, &mut Outliner { path, ascender, scale, offset });
+        let offset = (
+            x_offset as f32,
+            (y_offset - self.none.0.ascender() as i32) as f32,
+        );
+
+        self.none.0.outline_glyph(
+            glyph_id,
+            &mut Outliner {
+                path,
+                ascender,
+                scale,
+                offset,
+            },
+        );
     }
 }
 
@@ -121,7 +149,10 @@ impl<'a> Font<'a> {
         );
         let none = LangFont(face.0, face.1);
 
-        self.fonts.push(StyledFont { none, glyph_buffer: None });
+        self.fonts.push(StyledFont {
+            none,
+            glyph_buffer: None,
+        });
         Some(self)
     }
 
@@ -130,7 +161,7 @@ impl<'a> Font<'a> {
     ///  - `text`: text to render.
     ///  - `row`: x (Left/Right align) or y (Up/Down align) offset where to stop
     ///    rendering.
-    /// 
+    ///
     ///  Returns an iterator which generates the path from characters (see
     ///  [`TextPathIterator`]) and a number indicating how many characters are
     ///  leftover (not rendered).
@@ -160,17 +191,22 @@ impl<'a> Font<'a> {
         // Replace glyph buffer using text.
         // FIXME: Currently only using first font.
         self.fonts[0].glyph_buffer = Some({
-            let mut unicode_buffer = if let Some(buf) = self.fonts[0].glyph_buffer.take() {
-                buf.clear()
-            } else {
-                UnicodeBuffer::new()
-            };
+            let mut unicode_buffer =
+                if let Some(buf) = self.fonts[0].glyph_buffer.take() {
+                    buf.clear()
+                } else {
+                    UnicodeBuffer::new()
+                };
             unicode_buffer.push_str(text);
             rustybuzz::shape(&self.fonts[0].none.1, &[], unicode_buffer)
         });
 
         // Pass over glyphs, looking for where to stop.
-        let positions = self.fonts[0].glyph_buffer.as_ref().unwrap().glyph_positions();
+        let positions = self.fonts[0]
+            .glyph_buffer
+            .as_ref()
+            .unwrap()
+            .glyph_positions();
         let infos = self.fonts[0].glyph_buffer.as_ref().unwrap().glyph_infos();
         let mut until = positions.len();
         'crop: for (index, glyph) in positions.iter().enumerate() {
@@ -180,15 +216,18 @@ impl<'a> Font<'a> {
                 break 'crop;
             }
         }
-        
+
         // Return iterator over PathOps and index to start on next call.
-        (TextPathIterator {
-            fontc: self,
-            until,
-            index: 0,
-            path_i: 0,
-            offset: (0, 0),
-        }, left_over)
+        (
+            TextPathIterator {
+                fontc: self,
+                until,
+                index: 0,
+                path_i: 0,
+                offset: (0, 0),
+            },
+            left_over,
+        )
 
         /*let mut pixel_length = 0.0;
         let mut last = None;
@@ -426,7 +465,11 @@ impl Iterator for TextPathIterator<'_, '_> {
         self.path_i = 0;
         // Check for remaining glyphs in the GlyphBuffer.
         if self.index != self.until {
-            self.fontc.fonts[0].path(self.index, &mut self.fontc.paths, &mut self.offset);
+            self.fontc.fonts[0].path(
+                self.index,
+                &mut self.fontc.paths,
+                &mut self.offset,
+            );
             self.index += 1;
             self.next()
         } else {

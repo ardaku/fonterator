@@ -3,7 +3,7 @@ use pix::matte::Matte8;
 use pix::ops::SrcOver;
 use pix::rgb::{Rgba8p, SRgba8};
 use pix::Raster;
-use png_pong::{PngRaster, Encoder}; // For saving PNG
+use png_pong::{Encoder, PngRaster}; // For saving PNG
 
 const FONT_SIZE: f32 = 200.0;
 
@@ -21,10 +21,7 @@ fn main() {
     let mut start = 0;
     let mut row = 0;
     loop {
-        let (path, left) = font.render(
-            &STR[start..],
-            2048.0 / FONT_SIZE,
-        );
+        let (path, left) = font.render(&STR[start..], 2048.0 / FONT_SIZE);
         r.composite_matte(
             (0, row * 200, 2048, 2048),
             p.fill(FillRule::NonZero, path, Matte8::new(255)),
@@ -50,10 +47,7 @@ fn main() {
     let mut start = 0;
     let mut row = 0;
     loop {
-        let (path, left) = font.render(
-            &STR[start..],
-            2048.0 / FONT_SIZE,
-        );
+        let (path, left) = font.render(&STR[start..], 2048.0 / FONT_SIZE);
         r.composite_matte(
             (0, 1024 + row * 200, 2048, 2048),
             p.fill(FillRule::NonZero, path, Matte8::new(255)),

@@ -6,14 +6,14 @@ use pix::matte::Matte8;
 use pix::ops::SrcOver;
 use pix::rgb::{Rgba8p, SRgba8};
 use pix::Raster;
-use png_pong::{PngRaster, Encoder}; // For saving PNG
+use png_pong::{Encoder, PngRaster}; // For saving PNG
 
 const FONT_SIZE: f32 = 32.0;
 
 fn main() {
     // Most common
     let english = "Raster Text With Font"; // LEFT-RIGHT
-    //let english2 = &format!("{}Raster Text With Font", font::BOLD); // LEFT-RIGHT
+                                           //let english2 = &format!("{}Raster Text With Font", font::BOLD); // LEFT-RIGHT
     let nepali = "फन्टको साथ रास्टर पाठ"; // LEFT-RIGHT
     let arabic = "النقطية النص مع الخط"; // RIGHT-LEFT
     let hebrew = "טקסט רסטר עם גופן"; // RIGHT-LEFT

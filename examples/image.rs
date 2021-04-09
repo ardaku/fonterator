@@ -14,13 +14,7 @@ fn main() {
     let mut data; //= Data::new().move_to(vec![0.0, 0.0]);
 
     // Loop through the glyphs in the text, adding to the SVG.
-    let mut path = font
-        .render(
-            "…hello‽É¿?üæ 2⸘", /*text*/
-            2048.0,                      /*width*/
-            // fonterator::TextAlign::Left,
-        )
-        .0;
+    let mut path = font.render("…hello‽É¿?üæ 2⸘" /*text*/, 2048.0 /*width*/).0;
     data = Data::new();
 
     for i in &mut path {
