@@ -107,7 +107,7 @@ pub struct Font<'a> {
 }
 
 impl<'a> Font<'a> {
-    /// Create a new `Font`.  Add glyphs with `add()`.
+    /// Create a new `Font`.  Add glyphs with `push()`.
     pub fn new() -> Self {
         Self::default()
     }
@@ -130,6 +130,10 @@ impl<'a> Font<'a> {
     ///  - `text`: text to render.
     ///  - `row`: x (Left/Right align) or y (Up/Down align) offset where to stop
     ///    rendering.
+    /// 
+    ///  Returns an iterator which generates the path from characters (see
+    ///  [`TextPathIterator`]) and a number indicating how many characters are
+    ///  leftover (not rendered).
     pub fn render<'b>(
         &'b mut self,
         text: &str,
@@ -392,7 +396,7 @@ impl Iterator for CharPathIterator<'_> {
     }
 }
 
-/// Iterator that generates path from characters.
+/// Iterator that generates a path from characters.
 #[allow(missing_debug_implementations)]
 pub struct TextPathIterator<'a, 'b> {
     // Contains reusable glyph and path buffers.
@@ -484,7 +488,7 @@ pub fn monospace_font() -> Font<'static> {
         .unwrap()
 }
 
-/// Get a monospace font.  Requires feature = "normal-font".
+/// Get a normal font.  Requires feature = "normal-font".
 #[cfg(feature = "normal-font")]
 pub fn normal_font() -> Font<'static> {
     const FONTA: &[u8] = include_bytes!("font/dejavu/Sans.ttf");
