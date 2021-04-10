@@ -7,7 +7,7 @@ use png_pong::{Encoder, PngRaster}; // For saving PNG
 
 fn main() {
     // Load the default FontGroup (font and fallbacks).
-    let font = fonterator::monospace_font();
+    let mut font = fonterator::monospace_font();
 
     // Init rendering
     let mut p = Plotter::new(Raster::with_clear(2048, 2048));
@@ -22,7 +22,7 @@ fn main() {
         let (path, l) = font.render(
             &text[begin..], /*text*/
             2048.0 / 256.0,
-            fonterator::TextAlign::Left,
+            // fonterator::TextAlign::Left,
         );
         // Clear plotter
         let mut pr = p.raster();
@@ -37,9 +37,11 @@ fn main() {
             Rgba8p::new(0, 0, 0, 255), /*color*/
             SrcOver,
         );
-        begin += l;
+        if let Some(l) = l {
+            begin += l;
+        }
         line += 1;
-        if l == 0 {
+        if l.is_none() {
             break;
         }
     }
