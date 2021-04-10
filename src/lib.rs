@@ -6,10 +6,9 @@
 // https://apache.org/licenses/LICENSE-2.0>, or the Zlib License, <LICENSE-ZLIB
 // or http://opensource.org/licenses/Zlib>, at your option. This file may not be
 // copied, modified, or distributed except according to those terms.
+//
+//! TODO: Top-level Documentation.
 
-#![cfg_attr(feature = "docs-rs", feature(external_doc))]
-#![cfg_attr(feature = "docs-rs", doc(include = "../README.md"))]
-#![doc = ""]
 #![doc(
     html_logo_url = "https://libcala.github.io/logo.svg",
     html_favicon_url = "https://libcala.github.io/icon.svg",
