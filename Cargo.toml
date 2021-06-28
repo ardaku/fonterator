@@ -41,7 +41,7 @@ version = "0.9"
 version = "0.3"
 
 [dev-dependencies]
-svg = "0.9"
+svg = "0.10"
 png_pong = "0.8"
 pix = "0.13"
 
