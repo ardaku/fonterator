@@ -88,7 +88,7 @@ impl<'a> StyledFont<'a> {
         offset: &mut (i32, i32),
     ) {
         let GlyphInfo {
-            codepoint,
+            glyph_id,
             cluster: _,
             ..
         } = self.glyph_buffer.as_ref().unwrap().glyph_infos()[index];
@@ -100,7 +100,7 @@ impl<'a> StyledFont<'a> {
             ..
         } = self.glyph_buffer.as_ref().unwrap().glyph_positions()[index];
 
-        let glyph_id = GlyphId(codepoint as u16);
+        let glyph_id = GlyphId(glyph_id as u16);
         let scale = (self.none.0.height() as f32).recip();
 
         // let xy = (xy.0 + x_offset as f32 * scale, -xy.1 - y_offset as f32 * scale);
