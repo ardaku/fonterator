@@ -23,22 +23,11 @@ keywords = ["font", "truetype", "opentype", "ttf", "otf"]
 readme = "README.md"
 edition = "2018"
 
-[badges]
-travis-ci = { repository = "libcala/fonterator" }
-is-it-maintained-issue-resolution = { repository = "libcala/fonterator" }
-is-it-maintained-open-issues = { repository = "libcala/fonterator" }
-maintenance = { status = "actively-developed" }
-
 [dependencies]
 footile = "0.6"        # For vector path operations
 unicode-script = "0.5" # For calculating text direction.
-
-# For reading TTF/OTF files
-[dependencies.ttf-parser]
-version = "0.9"
-
-[dependencies.rustybuzz]
-version = "0.3"
+ttf-parser = "0.12"    # For reading TTF/OTF files
+rustybuzz = "0.4"      # For text shaping
 
 [dev-dependencies]
 svg = "0.10"
