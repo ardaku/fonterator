@@ -2,7 +2,7 @@
 
 #### Load fonts as vector graphics in pure Rust with advanced text layout.
 
-[![Build Status](https://api.travis-ci.org/libcala/fonterator.svg?branch=master)](https://travis-ci.org/libcala/fonterator)
+[![Build Status](https://api.travis-ci.org/ardaku/fonterator.svg?branch=master)](https://travis-ci.org/ardaku/fonterator)
 [![Docs](https://docs.rs/fonterator/badge.svg)](https://docs.rs/fonterator)
 [![crates.io](https://img.shields.io/crates/v/fonterator.svg)](https://crates.io/crates/fonterator)
 
@@ -139,16 +139,16 @@ the root of the crate.
 
 ## Upgrade
 You can use the
-[changelog](https://github.com/libcala/fonterator/blob/master/CHANGELOG.md)
+[changelog](https://github.com/ardaku/fonterator/blob/stable/CHANGELOG.md)
 to facilitate upgrading this crate as a dependency.
 
 ## License
 Licensed under either of
  - Apache License, Version 2.0,
-   ([LICENSE-APACHE](https://github.com/libcala/fonterator/blob/master/LICENSE-APACHE) or
+   ([LICENSE-APACHE](https://github.com/ardaku/fonterator/blob/stable/LICENSE-APACHE) or
    [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0))
  - Zlib License,
-   ([LICENSE-ZLIB](https://github.com/libcala/fonterator/blob/master/LICENSE-ZLIB) or
+   ([LICENSE-ZLIB](https://github.com/ardaku/fonterator/blob/stable/LICENSE-ZLIB) or
    [https://opensource.org/licenses/Zlib](https://opensource.org/licenses/Zlib))
 
 at your option.
@@ -166,8 +166,8 @@ Features requests will not complete as fast.  If you have any questions, design
 critques, or want me to find you something to work on based on your skill level,
 you can email me at [jeronlau@plopgrizzly.com](mailto:jeronlau@plopgrizzly.com).
 Otherwise,
-[here's a link to the issues on GitHub](https://github.com/libcala/fonterator/issues).
+[here's a link to the issues on GitHub](https://github.com/ardaku/fonterator/issues).
 Before contributing, check out the
-[contribution guidelines](https://github.com/libcala/fonterator/blob/master/CONTRIBUTING.md),
+[contribution guidelines](https://github.com/ardaku/fonterator/blob/stable/CONTRIBUTING.md),
 and, as always, make sure to follow the
-[code of conduct](https://github.com/libcala/fonterator/blob/master/CODE_OF_CONDUCT.md).
+[code of conduct](https://github.com/ardaku/fonterator/blob/stable/CODE_OF_CONDUCT.md).

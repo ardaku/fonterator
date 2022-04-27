@@ -1,11 +1,11 @@
-// fonterator
-//
-// Copyright (c) 2018-2020 Jeron Aldaron Lau
-//
-// Licensed under the Apache License, Version 2.0, <LICENSE-APACHE or
-// https://apache.org/licenses/LICENSE-2.0>, or the Zlib License, <LICENSE-ZLIB
-// or http://opensource.org/licenses/Zlib>, at your option. This file may not be
-// copied, modified, or distributed except according to those terms.
+// Copyright © 2018-2022 The Fonterator Contributors.
+//                                                                               
+// Licensed under any of:                                                        
+// - Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0)   
+// - MIT License (https://mit-license.org/)                                      
+// - Boost Software License, Version 1.0 (https://www.boost.org/LICENSE_1_0.txt) 
+// At your choosing (See accompanying files LICENSE_APACHE_2_0.txt,              
+// LICENSE_MIT.txt and LICENSE_BOOST_1_0.txt).
 
 use crate::direction::{direction, Direction};
 use footile::{PathOp, Pt};
