@@ -23,7 +23,7 @@ readme = "README.md"
 edition = "2018"
 
 [dependencies]
-footile = "0.6"        # For vector path operations
+footile = "0.7"        # For vector path operations
 unicode-script = "0.5" # For calculating text direction.
 ttf-parser = "0.15"    # For reading TTF/OTF files
 rustybuzz = "0.5"      # For text shaping
