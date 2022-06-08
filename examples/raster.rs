@@ -1,4 +1,5 @@
-use footile::{FillRule, Plotter, Transform};
+use footile::{FillRule, Plotter};
+use pointy::Transform;
 use pix::matte::Matte8;
 use pix::ops::SrcOver;
 use pix::rgb::{Rgba8p, SRgba8};
@@ -30,7 +31,7 @@ fn main() {
             SrcOver,
         );
         // Reset plotter
-        let mut pr = p.raster();
+        let mut pr = p.into_raster();
         pr.clear();
         p = Plotter::new(pr);
         p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
@@ -56,7 +57,7 @@ fn main() {
             SrcOver,
         );
         // Reset plotter
-        let mut pr = p.raster();
+        let mut pr = p.into_raster();
         pr.clear();
         p = Plotter::new(pr);
         p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));

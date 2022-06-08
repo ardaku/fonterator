@@ -1,7 +1,8 @@
 //! This tests writing directions for different languages.
 
 use fonterator as font; // For parsing font file.
-use footile::{FillRule, Plotter, Transform}; // For rendering font text.
+use footile::{FillRule, Plotter}; // For rendering font text.
+use pointy::Transform;
 use pix::matte::Matte8;
 use pix::ops::SrcOver;
 use pix::rgb::{Rgba8p, SRgba8};
@@ -46,7 +47,7 @@ fn main() {
         SrcOver,
     );
     // Reset plotter
-    let mut pr = p.raster();
+    let mut pr = p.into_raster();
     pr.clear();
     p = Plotter::new(pr);*/
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
@@ -66,7 +67,7 @@ fn main() {
         SrcOver,
     );
     // Reset plotter
-    let mut pr = p.raster();
+    let mut pr = p.into_raster();
     pr.clear();
     p = Plotter::new(pr);
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
@@ -86,7 +87,7 @@ fn main() {
         SrcOver,
     );
     // Reset plotter
-    let mut pr = p.raster();
+    let mut pr = p.into_raster();
     pr.clear();
     p = Plotter::new(pr);
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
@@ -106,7 +107,7 @@ fn main() {
         SrcOver,
     );
     // Reset plotter
-    let mut pr = p.raster();
+    let mut pr = p.into_raster();
     pr.clear();
     p = Plotter::new(pr);
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
@@ -126,7 +127,7 @@ fn main() {
         SrcOver,
     );
     // Reset plotter
-    let mut pr = p.raster();
+    let mut pr = p.into_raster();
     pr.clear();
     p = Plotter::new(pr);
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
@@ -146,7 +147,7 @@ fn main() {
         SrcOver,
     );
     // Reset plotter
-    let mut pr = p.raster();
+    let mut pr = p.into_raster();
     pr.clear();
     p = Plotter::new(pr);
 
@@ -166,7 +167,7 @@ fn main() {
         SrcOver,
     );
     // Reset plotter
-    let mut pr = p.raster();
+    let mut pr = p.into_raster();
     pr.clear();
     p = Plotter::new(pr);
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
@@ -187,7 +188,7 @@ fn main() {
         SrcOver,
     );
     // Reset plotter
-    let mut pr = p.raster();
+    let mut pr = p.into_raster();
     pr.clear();
     p = Plotter::new(pr);
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
