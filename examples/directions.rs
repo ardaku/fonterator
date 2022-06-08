@@ -1,7 +1,8 @@
 //! This tests writing directions for different languages.
 
 use fonterator as font; // For parsing font file.
-use footile::{FillRule, Plotter, Transform}; // For rendering font text.
+use footile::{FillRule, Plotter}; // For rendering font text.
+use pointy::Transform;
 use pix::matte::Matte8;
 use pix::ops::SrcOver;
 use pix::rgb::{Rgba8p, SRgba8};
@@ -46,13 +47,16 @@ fn main() {
         SrcOver,
     );
     // Reset plotter
-    let mut pr = p.raster();
+    let mut pr = p.into_raster();
     pr.clear();
     p = Plotter::new(pr);*/
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font
-        .render(nepali, (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Left*/)
+        .render(
+            nepali,
+            (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Left*/
+        )
         .0;
     // Composite
     r.composite_matte(
@@ -63,13 +67,16 @@ fn main() {
         SrcOver,
     );
     // Reset plotter
-    let mut pr = p.raster();
+    let mut pr = p.into_raster();
     pr.clear();
     p = Plotter::new(pr);
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font
-        .render(english, (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Center*/)
+        .render(
+            english,
+            (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Center*/
+        )
         .0;
     // Composite
     r.composite_matte(
@@ -80,13 +87,16 @@ fn main() {
         SrcOver,
     );
     // Reset plotter
-    let mut pr = p.raster();
+    let mut pr = p.into_raster();
     pr.clear();
     p = Plotter::new(pr);
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font
-        .render(arabic, (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Right*/)
+        .render(
+            arabic,
+            (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Right*/
+        )
         .0;
     // Composite
     r.composite_matte(
@@ -97,13 +107,16 @@ fn main() {
         SrcOver,
     );
     // Reset plotter
-    let mut pr = p.raster();
+    let mut pr = p.into_raster();
     pr.clear();
     p = Plotter::new(pr);
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font
-        .render(hebrew, (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Right*/)
+        .render(
+            hebrew,
+            (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Right*/
+        )
         .0;
     // Composite
     r.composite_matte(
@@ -114,13 +127,16 @@ fn main() {
         SrcOver,
     );
     // Reset plotter
-    let mut pr = p.raster();
+    let mut pr = p.into_raster();
     pr.clear();
     p = Plotter::new(pr);
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font
-        .render(nepali, (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Center*/)
+        .render(
+            nepali,
+            (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Center*/
+        )
         .0;
     // Composite
     r.composite_matte(
@@ -131,13 +147,16 @@ fn main() {
         SrcOver,
     );
     // Reset plotter
-    let mut pr = p.raster();
+    let mut pr = p.into_raster();
     pr.clear();
     p = Plotter::new(pr);
 
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE * 2.0));
     let path = font
-        .render(english, (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Right*/)
+        .render(
+            english,
+            (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Right*/
+        )
         .0;
     // Composite
     r.composite_matte(
@@ -148,7 +167,7 @@ fn main() {
         SrcOver,
     );
     // Reset plotter
-    let mut pr = p.raster();
+    let mut pr = p.into_raster();
     pr.clear();
     p = Plotter::new(pr);
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
@@ -169,7 +188,7 @@ fn main() {
         SrcOver,
     );
     // Reset plotter
-    let mut pr = p.raster();
+    let mut pr = p.into_raster();
     pr.clear();
     p = Plotter::new(pr);
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));

@@ -1,4 +1,4 @@
-use footile::{PathOp, Pt};
+use footile::{PathOp};
 use svg::{
     node::element::{path::Data, Group, Path, Style},
     Document, Node,
@@ -19,28 +19,28 @@ fn main() {
 
     for i in &mut path {
         match i {
-            PathOp::Move(Pt(x, y)) => {
-                data = data.move_to((x * FONT_SIZE, y * FONT_SIZE));
+            PathOp::Move(pt) => {
+                data = data.move_to((pt.x() * FONT_SIZE, pt.y() * FONT_SIZE));
             }
-            PathOp::Line(Pt(x, y)) => {
-                data = data.line_to((x * FONT_SIZE, y * FONT_SIZE));
+            PathOp::Line(pt) => {
+                data = data.line_to((pt.x() * FONT_SIZE, pt.y() * FONT_SIZE));
             }
-            PathOp::Quad(Pt(cx, cy), Pt(x, y)) => {
+            PathOp::Quad(cpt, pt) => {
                 data = data.quadratic_curve_to((
-                    cx * FONT_SIZE,
-                    cy * FONT_SIZE,
-                    x * FONT_SIZE,
-                    y * FONT_SIZE,
+                    cpt.x() * FONT_SIZE,
+                    cpt.y() * FONT_SIZE,
+                    pt.x() * FONT_SIZE,
+                    pt.y() * FONT_SIZE,
                 ));
             }
-            PathOp::Cubic(Pt(ax, ay), Pt(bx, by), Pt(x, y)) => {
+            PathOp::Cubic(apt, bpt, pt) => {
                 data = data.cubic_curve_to((
-                    ax * FONT_SIZE,
-                    ay * FONT_SIZE,
-                    bx * FONT_SIZE,
-                    by * FONT_SIZE,
-                    x * FONT_SIZE,
-                    y * FONT_SIZE,
+                    apt.x() * FONT_SIZE,
+                    apt.y() * FONT_SIZE,
+                    bpt.x() * FONT_SIZE,
+                    bpt.y() * FONT_SIZE,
+                    pt.x() * FONT_SIZE,
+                    pt.y() * FONT_SIZE,
                 ));
             }
             PathOp::Close() => {
