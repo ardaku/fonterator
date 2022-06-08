@@ -24,9 +24,10 @@ edition = "2018"
 
 [dependencies]
 footile = "0.7"        # For vector path operations
-unicode-script = "0.5" # For calculating text direction.
-ttf-parser = "0.15"    # For reading TTF/OTF files
+pointy = "0.3"         # For footile (required)
 rustybuzz = "0.5"      # For text shaping
+ttf-parser = "0.15"    # For reading TTF/OTF files
+unicode-script = "0.5" # For calculating text direction.
 
 [dev-dependencies]
 svg = "0.10"

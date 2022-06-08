@@ -1,14 +1,15 @@
 // Copyright © 2018-2022 The Fonterator Contributors.
-//                                                                               
-// Licensed under any of:                                                        
-// - Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0)   
-// - MIT License (https://mit-license.org/)                                      
-// - Boost Software License, Version 1.0 (https://www.boost.org/LICENSE_1_0.txt) 
-// At your choosing (See accompanying files LICENSE_APACHE_2_0.txt,              
+//
+// Licensed under any of:
+// - Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
+// - MIT License (https://mit-license.org/)
+// - Boost Software License, Version 1.0 (https://www.boost.org/LICENSE_1_0.txt)
+// At your choosing (See accompanying files LICENSE_APACHE_2_0.txt,
 // LICENSE_MIT.txt and LICENSE_BOOST_1_0.txt).
 
 use crate::direction::{direction, Direction};
-use footile::{PathOp, Pt};
+use footile::PathOp;
+use pointy::Pt;
 use rustybuzz::{
     Face as FaceShaper, GlyphBuffer, GlyphInfo, GlyphPosition, UnicodeBuffer,
 };
@@ -32,14 +33,14 @@ impl OutlineBuilder for Outliner<'_> {
         let x = x + self.offset.0;
         let y = self.ascender - (y + self.offset.1);
         self.path
-            .push(PathOp::Move(Pt(x * self.scale, y * self.scale)));
+            .push(PathOp::Move(Pt::new(x * self.scale, y * self.scale)));
     }
 
     fn line_to(&mut self, x: f32, y: f32) {
         let x = x + self.offset.0;
         let y = self.ascender - (y + self.offset.1);
         self.path
-            .push(PathOp::Line(Pt(x * self.scale, y * self.scale)));
+            .push(PathOp::Line(Pt::new(x * self.scale, y * self.scale)));
     }
 
     fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
@@ -48,8 +49,8 @@ impl OutlineBuilder for Outliner<'_> {
         let y = self.ascender - (y + self.offset.1);
         let y1 = self.ascender - (y1 + self.offset.1);
         self.path.push(PathOp::Quad(
-            Pt(x1 * self.scale, y1 * self.scale),
-            Pt(x * self.scale, y * self.scale),
+            Pt::new(x1 * self.scale, y1 * self.scale),
+            Pt::new(x * self.scale, y * self.scale),
         ));
     }
 
@@ -62,9 +63,9 @@ impl OutlineBuilder for Outliner<'_> {
         let y2 = self.ascender - (y2 + self.offset.1);
 
         self.path.push(PathOp::Cubic(
-            Pt(x1 * self.scale, y1 * self.scale),
-            Pt(x2 * self.scale, y2 * self.scale),
-            Pt(x * self.scale, y * self.scale),
+            Pt::new(x1 * self.scale, y1 * self.scale),
+            Pt::new(x2 * self.scale, y2 * self.scale),
+            Pt::new(x * self.scale, y * self.scale),
         ));
     }
 

@@ -52,7 +52,10 @@ fn main() {
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font
-        .render(nepali, (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Left*/)
+        .render(
+            nepali,
+            (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Left*/
+        )
         .0;
     // Composite
     r.composite_matte(
@@ -69,7 +72,10 @@ fn main() {
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font
-        .render(english, (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Center*/)
+        .render(
+            english,
+            (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Center*/
+        )
         .0;
     // Composite
     r.composite_matte(
@@ -86,7 +92,10 @@ fn main() {
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font
-        .render(arabic, (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Right*/)
+        .render(
+            arabic,
+            (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Right*/
+        )
         .0;
     // Composite
     r.composite_matte(
@@ -103,7 +112,10 @@ fn main() {
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font
-        .render(hebrew, (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Right*/)
+        .render(
+            hebrew,
+            (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Right*/
+        )
         .0;
     // Composite
     r.composite_matte(
@@ -120,7 +132,10 @@ fn main() {
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE));
 
     let path = font
-        .render(nepali, (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Center*/)
+        .render(
+            nepali,
+            (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Center*/
+        )
         .0;
     // Composite
     r.composite_matte(
@@ -137,7 +152,10 @@ fn main() {
 
     p.set_transform(Transform::with_scale(FONT_SIZE, FONT_SIZE * 2.0));
     let path = font
-        .render(english, (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Right*/)
+        .render(
+            english,
+            (512.0 - 64.0) / FONT_SIZE, /*font::TextAlign::Right*/
+        )
         .0;
     // Composite
     r.composite_matte(
