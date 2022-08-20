@@ -33,5 +33,6 @@
 mod direction;
 mod font;
 mod shape;
+mod render;
 
 pub use font::*;
