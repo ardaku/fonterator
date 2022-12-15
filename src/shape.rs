@@ -1,10 +1,23 @@
+// Copyright © 2018-2022 The Fonterator Contributors.
+//
+// Licensed under any of:
+// - Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
+// - Boost Software License, Version 1.0 (https://www.boost.org/LICENSE_1_0.txt)
+// - MIT License (https://mit-license.org/)
+// At your choosing (See accompanying files LICENSE_APACHE_2_0.txt, 
+// LICENSE_BOOST_1_0.txt, and LICENSE_MIT.txt).
 //! Fonterator's text shaping with rustybuzz
 
-use rustybuzz::{Face, UnicodeBuffer, GlyphBuffer};
-use footile::PathOp;
 use crate::render;
+use footile::PathOp;
+use rustybuzz::{Face, GlyphBuffer, UnicodeBuffer};
+use std::fmt;
 
-fn glyph_buffer_with_text(face: &Face<'_>, glyph_buffer: GlyphBuffer, text: &str) -> GlyphBuffer {
+fn glyph_buffer_with_text(
+    face: &Face<'_>,
+    glyph_buffer: GlyphBuffer,
+    text: &str,
+) -> GlyphBuffer {
     let mut unicode_buffer = glyph_buffer.clear();
     unicode_buffer.push_str(text);
     rustybuzz::shape(&face, &[], unicode_buffer)
@@ -28,6 +41,15 @@ pub struct Font<'a> {
     path_buffer: Vec<PathOp>,
 }
 
+impl fmt::Debug for Font<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Font")
+            .field("glyph_buffer", &self.glyph_buffer)
+            .field("path_buffer", &self.path_buffer)
+            .finish_non_exhaustive()
+    }
+}
+
 impl<'a> Font<'a> {
     /// Load a font from a TTF file
     pub fn new(ttf: &'a [u8]) -> Result<Self, ()> {
@@ -35,28 +57,29 @@ impl<'a> Font<'a> {
         let glyph_buffer = new_glyph_buffer(&face);
         let path_buffer = Vec::new();
 
-        Ok(Self { face, glyph_buffer, path_buffer })
+        Ok(Self {
+            face,
+            glyph_buffer,
+            path_buffer,
+        })
     }
 
-    /// Render text including shaping and layout
-    ///
-    /// # Parameters
-    ///  - `text`: The UTF-8 text to render
-    ///  - `row`: The available rendering width in ems
-    pub fn render<'b: 'a>(&'b mut self, text: &mut &str, row: f32)
-        -> impl Iterator<Item = PathOp> + 'b + 'a
-    {
-        // FIXME: Lookahead
-        let consumed = (*text).len();
-        let piece = &(*text)[..consumed];
-   
+    /// Simple text rendering
+    pub fn render<'b: 'a>(
+        &'b mut self,
+        text: &str,
+    ) -> impl Iterator<Item = PathOp> + 'b + 'a {
         let mut glyph_buffer = new_glyph_buffer(&self.face);
         std::mem::swap(&mut glyph_buffer, &mut self.glyph_buffer);
-        self.glyph_buffer = glyph_buffer_with_text(&self.face, glyph_buffer, piece);
+        self.glyph_buffer =
+            glyph_buffer_with_text(&self.face, glyph_buffer, text);
 
-        *text = &text[consumed..];
-
-        Render { font: self, glyph_index: 0, advance_x: 0.0, advance_y: 0.0 }
+        Render {
+            font: self,
+            glyph_index: 0,
+            advance_x: 0.0,
+            advance_y: 0.0,
+        }
     }
 }
 
@@ -100,7 +123,14 @@ impl Iterator for Render<'_, '_> {
         let glyph_x = self.advance_x + to_f32(scale, glyph_position.x_offset);
         let glyph_y = self.advance_y + to_f32(scale, glyph_position.y_offset);
 
-        render::build_path(&mut self.font.path_buffer, &self.font.face, glyph_x, glyph_y, glyph_id);
+        render::build_path(
+            &mut self.font.path_buffer,
+            &self.font.face,
+            glyph_x,
+            glyph_y,
+            glyph_id,
+            scale,
+        );
 
         self.glyph_index += 1;
 

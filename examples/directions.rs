@@ -2,12 +2,12 @@
 
 use fonterator as font; // For parsing font file.
 use footile::{FillRule, Plotter}; // For rendering font text.
-use pointy::Transform;
 use pix::matte::Matte8;
 use pix::ops::SrcOver;
 use pix::rgb::{Rgba8p, SRgba8};
 use pix::Raster;
-use png_pong::{Encoder, PngRaster}; // For saving PNG
+use png_pong::{Encoder, PngRaster};
+use pointy::Transform; // For saving PNG
 
 const FONT_SIZE: f32 = 32.0;
 
