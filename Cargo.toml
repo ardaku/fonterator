@@ -30,7 +30,7 @@ ttf-parser = "0.15"    # For reading TTF/OTF files
 unicode-script = "0.5" # For calculating text direction.
 
 [dev-dependencies]
-svg = "0.12"
+svg = "0.13"
 png_pong = "0.8"
 pix = "0.13"
 
