@@ -12,8 +12,8 @@ use footile::PathOp;
 use pointy::Pt;
 use rustybuzz::{
     Face as FaceShaper, GlyphBuffer, GlyphInfo, GlyphPosition, UnicodeBuffer,
+    ttf_parser::{kern::Subtable, Face, GlyphId, OutlineBuilder},
 };
-use ttf_parser::{kern::Subtable, Face, GlyphId, OutlineBuilder};
 
 struct LangFont<'a>(Face<'a>, FaceShaper<'a>);
 
