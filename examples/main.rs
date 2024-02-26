@@ -1,10 +1,10 @@
 use footile::{FillRule, Plotter};
-use pointy::Transform;
 use pix::matte::Matte8;
 use pix::ops::SrcOver;
 use pix::rgb::{Rgba8p, SRgba8};
 use pix::Raster;
-use png_pong::{Encoder, PngRaster}; // For saving PNG
+use png_pong::{Encoder, PngRaster};
+use pointy::Transform; // For saving PNG
 
 fn main() {
     // Load the default FontGroup (font and fallbacks).
